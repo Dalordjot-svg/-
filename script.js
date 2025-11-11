@@ -203,3 +203,31 @@ function tick() {
 
 renderTable();
 tick();
+// ======== ЗАПРЕТ ГАСНУТЬ ЭКРАНУ ========
+
+// Проверка поддержки Wake Lock API
+let wakeLock = null;
+
+async function requestWakeLock() {
+  try {
+    wakeLock = await navigator.wakeLock.request("screen");
+    console.log("🟢 Экран не будет гаснуть");
+
+    // Если экран блокируется или вкладка теряет фокус — пересоздаём блокировку
+    wakeLock.addEventListener("release", () => {
+      console.log("🔴 Экран снова может гаснуть");
+    });
+  } catch (err) {
+    console.warn("Wake Lock не поддерживается:", err);
+  }
+}
+
+// Повторно активировать при возврате на вкладку
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible" && wakeLock === null) {
+    requestWakeLock();
+  }
+});
+
+// Вызвать при загрузке страницы
+requestWakeLock();
