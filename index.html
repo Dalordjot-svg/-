@@ -1,43 +1,55 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
   <title>8В • II смена</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-<header>
-  <h1>8В • II смена</h1>
-  <div id="dayText">—</div>
-</header>
+  <header>
+    <h1>8В • II смена</h1>
+    <p id="dayText">—</p>
+  </header>
 
-<main>
-  <table>
-    <thead>
-      <tr><th>№</th><th>Время</th><th>Предмет</th><th>Каб.</th></tr>
-    </thead>
-    <tbody id="tbody"></tbody>
-  </table>
+  <main>
+    <section class="schedule">
+      <table>
+        <thead>
+          <tr>
+            <th>№</th>
+            <th>Время</th>
+            <th>Предмет</th>
+            <th>Каб.</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </section>
 
-  <div class="timer">
-    <svg viewBox="0 0 130 130" width="230" height="230">
-      <defs>
-        <linearGradient id="grad" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stop-color="#60a5fa"/>
-          <stop offset="100%" stop-color="#22c55e"/>
-        </linearGradient>
-      </defs>
-      <circle class="bg" cx="65" cy="65" r="60"></circle>
-      <circle class="fg" id="progress" cx="65" cy="65" r="60"></circle>
-    </svg>
-    <div class="time" id="timeDisplay">00:00</div>
-  </div>
+    <section class="timer-block">
+      <div class="timer">
+        <svg viewBox="0 0 130 130" width="230" height="230">
+          <defs>
+            <linearGradient id="grad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#60a5fa" />
+              <stop offset="100%" stop-color="#22c55e" />
+            </linearGradient>
+          </defs>
+          <circle class="bg" cx="65" cy="65" r="60"></circle>
+          <circle class="fg" id="progress" cx="65" cy="65" r="60"></circle>
+        </svg>
+        <div class="time" id="timeDisplay">00:00</div>
+      </div>
 
-  <div class="status" id="status">—</div>
-</main>
+      <div class="status" id="status">—</div>
+    </section>
+  </main>
 
-<footer>Автоопределение урока • II смена</footer>
-<script src="script.js"></script>
+  <footer>
+    <p>Автоматическое определение урока и дня • 8В класс</p>
+  </footer>
+
+  <script src="script.js"></script>
 </body>
 </html>
