@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Полное расписание — 8В</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- === ЗАГРУЗОЧНЫЙ ЭКРАН === -->
+  <div id="loaderScreen">
+    <div class="loader">
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+    </div>
+    <div class="loading-text">Загрузка расписания...</div>
+  </div>
+
+  <!-- === ШАПКА === -->
+  <header>
+    <button class="back-btn" onclick="window.location.href='index.html'">← Назад</button>
+    <h1>Полное расписание 8В</h1>
+    <p>II смена</p>
+  </header>
+
+  <main id="schedulePage" class="hidden">
+    <div class="tabs">
+      <button class="tab active" data-tab="lessons">📚 Расписание уроков</button>
+      <button class="tab" data-tab="bells">⏰ Расписание звонков</button>
+    </div>
+
+    <!-- === Уроки === -->
+    <div id="lessons" class="tab-content active">
+      <div class="day-block">
+        <h3>Понедельник</h3>
+        <table>
+          <tr><td>1</td><td>Музыка</td><td>310</td></tr>
+          <tr><td>2</td><td>Биология</td><td>206</td></tr>
+          <tr><td>3</td><td>Русский язык</td><td>205</td></tr>
+          <tr><td>4</td><td>Математика</td><td>208</td></tr>
+          <tr><td>5</td><td>Химия</td><td>105</td></tr>
+          <tr><td>6</td><td>Математика</td><td>208</td></tr>
+        </table>
+      </div>
+
+      <div class="day-block">
+        <h3>Вторник</h3>
+        <table>
+          <tr><td>1</td><td>Теория вероятности</td><td>208</td></tr>
+          <tr><td>2</td><td>Физкультура</td><td>спортзал</td></tr>
+          <tr><td>3</td><td>Русский язык</td><td>205</td></tr>
+          <tr><td>4</td><td>Физика</td><td>306</td></tr>
+          <tr><td>5</td><td>Английский язык</td><td>308/309</td></tr>
+          <tr><td>6</td><td>Химия</td><td>105</td></tr>
+          <tr><td>7</td><td>История</td><td>204</td></tr>
+        </table>
+      </div>
+
+      <div class="day-block">
+        <h3>Среда</h3>
+        <table>
+          <tr><td>1</td><td>Английский язык</td><td>308/309</td></tr>
+          <tr><td>2</td><td>Русский язык</td><td>205</td></tr>
+          <tr><td>3</td><td>Математика</td><td>208</td></tr>
+          <tr><td>4</td><td>Черчение</td><td>А-204</td></tr>
+          <tr><td>5</td><td>География</td><td>Б-202</td></tr>
+          <tr><td>6</td><td>Биология</td><td>Б-206</td></tr>
+          <tr><td>7</td><td>Труд / Технология</td><td>А-101</td></tr>
+        </table>
+      </div>
+
+      <div class="day-block">
+        <h3>Четверг</h3>
+        <table>
+          <tr><td>1</td><td>Профориентация</td><td>А-302</td></tr>
+          <tr><td>2</td><td>Физика</td><td>Б-306</td></tr>
+          <tr><td>3</td><td>Русский язык</td><td>205</td></tr>
+          <tr><td>4</td><td>Геометрия</td><td>208</td></tr>
+          <tr><td>5</td><td>История</td><td>Б-305</td></tr>
+          <tr><td>6</td><td>Физкультура</td><td>спортзал</td></tr>
+          <tr><td>7</td><td>Информатика</td><td>А-304/305</td></tr>
+        </table>
+      </div>
+
+      <div class="day-block">
+        <h3>Пятница</h3>
+        <table>
+          <tr><td>1</td><td>Русский язык</td><td>205</td></tr>
+          <tr><td>2</td><td>Математика</td><td>208</td></tr>
+          <tr><td>3</td><td>Английский язык</td><td>308/309</td></tr>
+          <tr><td>4</td><td>История</td><td>Б-305</td></tr>
+          <tr><td>5</td><td>География</td><td>Б-202</td></tr>
+          <tr><td>6</td><td>ОБЗР</td><td>103</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- === Звонки === -->
+    <div id="bells" class="tab-content">
+      <h3>Понедельник, четверг</h3>
+      <table>
+        <tr><td>1</td><td>13:10 — 13:30</td></tr>
+        <tr><td>2</td><td>13:35 — 14:15</td></tr>
+        <tr><td>3</td><td>14:20 — 15:00</td></tr>
+        <tr><td>4</td><td>15:05 — 15:45</td></tr>
+        <tr><td>5</td><td>16:00 — 16:40</td></tr>
+        <tr><td>6</td><td>16:45 — 17:25</td></tr>
+        <tr><td>7</td><td>17:30 — 18:10</td></tr>
+      </table>
+
+      <h3>Вторник, среда, пятница</h3>
+      <table>
+        <tr><td>1</td><td>13:30 — 14:10</td></tr>
+        <tr><td>2</td><td>14:15 — 14:55</td></tr>
+        <tr><td>3</td><td>15:00 — 15:40</td></tr>
+        <tr><td>4</td><td>15:50 — 16:30</td></tr>
+        <tr><td>5</td><td>16:35 — 17:15</td></tr>
+        <tr><td>6</td><td>17:20 — 18:00</td></tr>
+      </table>
+    </div>
+  </main>
+
+  <footer>
+    © 8В класс • Полное расписание
+  </footer>
+
+  <script>
+    // === ТАБЫ ===
+    const tabs = document.querySelectorAll('.tab');
+    const contents = document.querySelectorAll('.tab-content');
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        contents.forEach(c => c.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById(tab.dataset.tab).classList.add('active');
+      });
+    });
+
+    // === ЗАГРУЗКА С АНИМАЦИЕЙ ===
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        document.getElementById('loaderScreen').style.opacity = '0';
+        setTimeout(() => {
+          document.getElementById('loaderScreen').style.display = 'none';
+          document.getElementById('schedulePage').classList.remove('hidden');
+        }, 700);
+      }, 5000); // 5 секунд анимации загрузки
+    });
+  </script>
+</body>
+</html>
