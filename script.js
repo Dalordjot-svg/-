@@ -1,30 +1,27 @@
-// ======== НАСТРОЙКИ ========
-
+// ====== НАСТРОЙКИ ======
 const DAYS = ["Понедельник", "Вторник", "Среда", "Четверг", "Пятница"];
 
-// Время звонков для II смены
 const bells = {
-  MT: [ // понедельник / четверг
-    ["13:10", "13:30"], // 0
-    ["13:35", "14:15"], // 1
-    ["14:20", "15:00"], // 2
-    ["15:05", "15:45"], // 3
-    ["16:00", "16:40"], // 4
-    ["16:45", "17:25"], // 5
-    ["17:30", "18:10"]  // 6
+  MT: [
+    ["13:10", "13:30"],
+    ["13:35", "14:15"],
+    ["14:20", "15:00"],
+    ["15:05", "15:45"],
+    ["16:00", "16:40"],
+    ["16:45", "17:25"],
+    ["17:30", "18:10"]
   ],
-  TWF: [ // вторник / среда / пятница
-    ["13:30", "14:10"], // 1
-    ["14:15", "14:55"], // 2
-    ["15:00", "15:40"], // 3
-    ["15:50", "16:30"], // 4
-    ["16:35", "17:15"], // 5
-    ["17:20", "18:00"], // 6
-    ["18:05", "18:45"]  // 7
+  TWF: [
+    ["13:30", "14:10"],
+    ["14:15", "14:55"],
+    ["15:00", "15:40"],
+    ["15:50", "16:30"],
+    ["16:35", "17:15"],
+    ["17:20", "18:00"],
+    ["18:05", "18:45"]
   ]
 };
 
-// Расписание 8В
 const lessons = {
   "Понедельник": [
     ["Музыка", "310"],
@@ -71,19 +68,18 @@ const lessons = {
   ]
 };
 
-// ======== УТИЛИТЫ ========
-
+// ====== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ======
 const $ = s => document.querySelector(s);
 const pad = n => String(n).padStart(2, "0");
 
-function parse(t) {
+function parseTime(t) {
   const [h, m] = t.split(":").map(Number);
   const d = new Date();
   d.setHours(h, m, 0, 0);
   return d;
 }
 
-function diff(a, b) {
+function diffMins(a, b) {
   return Math.floor((b - a) / 60000);
 }
 
@@ -96,44 +92,44 @@ function bellset(day) {
   return (day === "Понедельник" || day === "Четверг") ? bells.MT : bells.TWF;
 }
 
-// ======== ЭЛЕМЕНТЫ ========
+// ====== DOM ЭЛЕМЕНТЫ ======
+const tbody = $("#tbody");
+const progress = $("#progress");
+const timeDisplay = $("#timeDisplay");
+const status = $("#status");
+const dayText = $("#dayText");
+const endMessage = $("#endMessage");
 
-const tbody = $("#tbody"),
-      progress = $("#progress"),
-      timeDisplay = $("#timeDisplay"),
-      status = $("#status"),
-      dayText = $("#dayText");
-
-// ======== ТАБЛИЦА ========
-
+// ====== РЕНДЕР ТАБЛИЦЫ ======
 function renderTable() {
-  const d = today(),
-        arr = bellset(d),
-        sub = lessons[d];
+  const d = today();
+  const arr = bellset(d);
+  const sub = lessons[d];
   dayText.textContent = `${d}, II смена`;
   tbody.innerHTML = "";
+
   arr.forEach(([a, b], i) => {
-    const mins = diff(parse(a), parse(b));
+    const mins = diffMins(parseTime(a), parseTime(b));
     const s = sub[i];
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>${i + 1}</td>
       <td>${a}–${b}<div style="font-size:12px;color:#9aa4b2">${mins} мин</div></td>
       <td>${s ? s[0] : ""}</td>
-      <td>${s ? s[1] : ""}</td>`;
+      <td>${s ? s[1] : ""}</td>
+    `;
     tbody.appendChild(tr);
   });
 }
 
-// ======== ОПРЕДЕЛЕНИЕ СОСТОЯНИЯ ========
-
-function state() {
-  const day = today();
-  const arr = bellset(day).map(([a, b]) => [parse(a), parse(b)]);
+// ====== СОСТОЯНИЕ ======
+function getState() {
+  const d = today();
+  const arr = bellset(d).map(([a, b]) => [parseTime(a), parseTime(b)]);
   const now = new Date();
 
-  if (now > arr[arr.length - 1][1]) return ["none", -1, now, now];
   if (now < arr[0][0]) return ["before", -1, arr[0][0], arr[0][1]];
+  if (now > arr[arr.length - 1][1]) return ["after", -1, now, now];
 
   for (let i = 0; i < arr.length; i++) {
     const [start, end] = arr[i];
@@ -144,8 +140,7 @@ function state() {
   return ["none", -1, now, now];
 }
 
-// ======== ТАЙМЕР И ПОДСВЕТКА ========
-
+// ====== ТАЙМЕР ======
 let lastTime = "00:00";
 
 function animateDigits(text) {
@@ -156,13 +151,12 @@ function animateDigits(text) {
 }
 
 function tick() {
-  const [type, index, start, end] = state();
+  const [type, index, start, end] = getState();
   const now = new Date();
   const total = (end - start) / 1000;
   const remaining = Math.max(0, Math.floor((end - now) / 1000));
   const ratio = total ? (1 - remaining / total) : 1;
 
-  // круговой прогресс
   progress.style.strokeDashoffset = 377 * (1 - ratio);
 
   const str = `${pad(Math.floor(remaining / 60))}:${pad(remaining % 60)}`;
@@ -171,7 +165,6 @@ function tick() {
     lastTime = str;
   }
 
-  // статус
   if (type === "lesson") {
     status.textContent = "идёт урок";
     status.className = "status go";
@@ -181,46 +174,60 @@ function tick() {
   } else if (type === "before") {
     status.textContent = "уроки ещё не начались";
     status.className = "status soon";
-  } else {
+  } else if (type === "after") {
     status.textContent = "уроки закончились";
+    status.className = "status stop";
+    showEndMessage();
+  } else {
+    status.textContent = "—";
     status.className = "status stop";
   }
 
-  // подсветка
-  const rows = document.querySelectorAll("tbody tr");
-  rows.forEach((tr, i) => {
-    tr.classList.remove("now");
-    if ((type === "lesson" && i === index) || (type === "break" && i === index))
-      tr.classList.add("now");
+  document.querySelectorAll("tr").forEach((tr, i) => {
+    tr.classList.toggle("now", type === "lesson" && i === index);
   });
 
   requestAnimationFrame(tick);
 }
 
-// ======== БЛОКИРОВКА ГАСНУТЬ ЭКРАНУ ========
+// ====== ПОЗДРАВЛЕНИЕ С КОНФЕТТИ ======
+function showEndMessage() {
+  if (!endMessage.classList.contains("shown")) {
+    endMessage.classList.add("shown");
+    endMessage.classList.remove("hidden");
+    showConfetti();
+  }
+}
 
+function showConfetti() {
+  const duration = 4000;
+  const end = Date.now() + duration;
+  (function frame() {
+    confetti({
+      particleCount: 6,
+      startVelocity: 30,
+      spread: 360,
+      ticks: 60,
+      origin: { x: Math.random(), y: Math.random() - 0.2 }
+    });
+    if (Date.now() < end) requestAnimationFrame(frame);
+  })();
+}
+
+// ====== НЕ ГАСИТЬ ЭКРАН ======
 let wakeLock = null;
-
 async function requestWakeLock() {
   try {
     wakeLock = await navigator.wakeLock.request("screen");
-    console.log("🟢 Экран не будет гаснуть");
-    wakeLock.addEventListener("release", () => {
-      console.log("🔴 Экран снова может гаснуть");
-    });
   } catch (err) {
     console.warn("Wake Lock не поддерживается:", err);
   }
 }
-
 document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "visible" && wakeLock === null) {
-    requestWakeLock();
-  }
+  if (document.visibilityState === "visible" && wakeLock === null) requestWakeLock();
 });
 
-// ======== ЗАПУСК ========
-
+// ====== СТАРТ ======
 renderTable();
 tick();
 requestWakeLock();
