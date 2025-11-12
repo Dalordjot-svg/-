@@ -1,19 +1,35 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>8В • II смена</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
 </head>
 <body>
   <header>
     <h1>8В • II смена</h1>
-    <p id="dayText">—</p>
+    <p id="dayText">Определение дня...</p>
   </header>
 
+  <!-- === УВЕДОМЛЕНИЕ ОБ ОБНОВЛЕНИИ === -->
+  <div id="updateModal" class="modal hidden">
+    <div class="modal-content">
+      <h2>🔔 Обновление сайта</h2>
+      <p>В этой версии были внедрены улучшения:</p>
+      <ul>
+        <li>🎉 Добавлено конфетти и поздравление после уроков</li>
+        <li>⚡ Ускорена загрузка расписания</li>
+        <li>📱 Оптимизация под телефоны</li>
+        <li>✨ Исправлены мелкие визуальные баги</li>
+      </ul>
+      <button id="okUpdate">ОК</button>
+    </div>
+  </div>
+
   <main>
-    <section class="schedule">
+    <section id="mainSection">
       <table>
         <thead>
           <tr>
@@ -25,31 +41,87 @@
         </thead>
         <tbody id="tbody"></tbody>
       </table>
-    </section>
 
-    <section class="timer-block">
-      <div class="timer">
-        <svg viewBox="0 0 130 130" width="230" height="230">
-          <defs>
-            <linearGradient id="grad" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stop-color="#60a5fa" />
-              <stop offset="100%" stop-color="#22c55e" />
-            </linearGradient>
-          </defs>
-          <circle class="bg" cx="65" cy="65" r="60"></circle>
-          <circle class="fg" id="progress" cx="65" cy="65" r="60"></circle>
-        </svg>
-        <div class="time" id="timeDisplay">00:00</div>
+      <div class="timer-block">
+        <div class="timer">
+          <svg width="140" height="140">
+            <defs>
+              <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#3b82f6" />
+                <stop offset="100%" stop-color="#10b981" />
+              </linearGradient>
+            </defs>
+            <circle class="bg" cx="70" cy="70" r="60"></circle>
+            <circle class="fg" id="progress" cx="70" cy="70" r="60"></circle>
+          </svg>
+          <div class="time" id="timeDisplay">00:00</div>
+        </div>
+        <div class="status" id="status">—</div>
       </div>
 
-      <div class="status" id="status">—</div>
+      <button class="main-btn" id="toSchedule">📅 Всё расписание</button>
     </section>
+
+    <!-- === ПОЗДРАВЛЕНИЕ ПОСЛЕ УРОКОВ === -->
+    <div id="endMessage" class="hidden">
+      <h2>🎉 Уроки закончились! 🎉</h2>
+      <p>Можно спокойно отдыхать 😎</p>
+    </div>
   </main>
 
   <footer>
-    <p>Автоматическое определение урока и дня • 8В класс</p>
+    © 8В класс • Автоматическое определение урока и дня
   </footer>
 
   <script src="script.js"></script>
+  <script>
+    // === ОДНОРАЗОВОЕ УВЕДОМЛЕНИЕ ОБ ОБНОВЛЕНИИ ===
+    const modal = document.getElementById("updateModal");
+    const okBtn = document.getElementById("okUpdate");
+
+    if (!localStorage.getItem("update_v2_ack")) {
+      modal.classList.remove("hidden");
+    }
+
+    okBtn.addEventListener("click", () => {
+      localStorage.setItem("update_v2_ack", "true");
+      modal.classList.add("hidden");
+    });
+
+    // === ПЕРЕХОД КО ВСЕМУ РАСПИСАНИЮ ===
+    document.getElementById("toSchedule").addEventListener("click", () => {
+      window.location.href = "schedule.html";
+    });
+
+    // === КОНФЕТТИ ===
+    function showConfetti() {
+      const duration = 4 * 1000;
+      const end = Date.now() + duration;
+
+      (function frame() {
+        confetti({
+          particleCount: 4,
+          startVelocity: 30,
+          spread: 360,
+          ticks: 60,
+          origin: { x: Math.random(), y: Math.random() - 0.2 }
+        });
+        if (Date.now() < end) requestAnimationFrame(frame);
+      })();
+    }
+
+    // === ОБРАБОТКА КОНЦА УРОКОВ ===
+    const observer = new MutationObserver(() => {
+      const status = document.getElementById("status").textContent;
+      const endMessage = document.getElementById("endMessage");
+      if (status.includes("закончились")) {
+        endMessage.classList.remove("hidden");
+        showConfetti();
+      } else {
+        endMessage.classList.add("hidden");
+      }
+    });
+    observer.observe(document.getElementById("status"), { childList: true });
+  </script>
 </body>
 </html>
