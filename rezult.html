@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Карта Здоровья | Монгуш С.О.</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --surface: #ffffff;
+            --bg-color: #f0f2f5;
+            --text-main: #2d3748;
+            --text-secondary: #718096;
+            --success: #48bb78;
+            --warning: #ed8936;
+            --danger: #f56565;
+            --danger-bg: #fff5f5;
+            --border-radius: 16px;
+            --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        * { box-sizing: border-box; transition: all 0.3s ease; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        /* Header Section */
+        header {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 40px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+            animation: slideDown 0.8s ease-out;
+        }
+
+        .header-info h1 { margin: 0; font-size: 2rem; font-weight: 700; }
+        .header-info p { margin: 5px 0 0; opacity: 0.9; font-size: 1.1rem; }
+        .header-meta { text-align: right; background: rgba(255,255,255,0.2); padding: 10px 20px; border-radius: 10px; backdrop-filter: blur(5px); }
+
+        /* Alert Box */
+        .alert-card {
+            background-color: var(--surface);
+            border-left: 6px solid var(--danger);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            animation: pulse-border 2s infinite;
+        }
+        
+        .alert-icon { font-size: 2rem; color: var(--danger); margin-right: 20px; }
+
+        /* Grid Layout */
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        /* Result Card */
+        .card {
+            background: var(--surface);
+            border-radius: var(--border-radius);
+            padding: 25px;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid transparent;
+            display: flex;
+            flex-direction: column;
+            animation: fadeInUp 0.6s ease-out backwards;
+        }
+
+        .card:hover { transform: translateY(-5px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
+        .card.critical { border-color: var(--danger); background: var(--danger-bg); }
+
+        .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; }
+        .metric-title { font-weight: 700; font-size: 1.1rem; color: var(--text-main); }
+        .metric-badge { font-size: 0.75rem; padding: 4px 10px; border-radius: 20px; font-weight: 600; text-transform: uppercase; }
+        
+        .badge-norm { background: #e6fffa; color: var(--success); }
+        .badge-high { background: #fff5f5; color: var(--danger); }
+        .badge-low { background: #fffaf0; color: var(--warning); }
+
+        .metric-value { font-size: 2rem; font-weight: 800; color: var(--text-main); line-height: 1; }
+        .metric-unit { font-size: 0.9rem; color: var(--text-secondary); margin-left: 5px; }
+
+        .bar-bg { background: #e2e8f0; height: 6px; border-radius: 3px; margin: 15px 0; overflow: hidden; }
+        .bar-fill { height: 100%; border-radius: 3px; width: 0; transition: width 1.5s ease-out; }
+
+        /* Documentation / Details Section */
+        .doc-toggle {
+            margin-top: auto;
+            background: none;
+            border: none;
+            color: #5a67d8;
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            padding: 0;
+            font-weight: 600;
+        }
+        .doc-toggle:hover { text-decoration: underline; }
+        .doc-content {
+            max-height: 0;
+            overflow: hidden;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-top: 10px;
+            border-top: 1px solid #eee;
+            transition: max-height 0.4s ease;
+        }
+        .doc-content.open { max-height: 200px; padding-top: 10px; }
+        .external-link { display: inline-block; margin-top: 5px; color: var(--primary-gradient); font-size: 0.8rem; text-decoration: none; }
+
+        /* Animations */
+        @keyframes slideDown { from { transform: translateY(-30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes fadeInUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes pulse-border { 0% { box-shadow: 0 0 0 0 rgba(245, 101, 101, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(245, 101, 101, 0); } 100% { box-shadow: 0 0 0 0 rgba(245, 101, 101, 0); } }
+
+        @media (max-width: 768px) {
+            .header-info, .header-meta { text-align: center; width: 100%; margin-bottom: 10px; }
+            .results-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <div class="header-info">
+            <h1>Монгуш Салбак Очурбановна</h1>
+            <p><i class="fas fa-calendar-alt"></i> Дата анализа: 16.12.2025 | Возраст: 53 года</p>
+        </div>
+        <div class="header-meta">
+            <strong>Лабораторная служба</strong><br>
+            Протокол № 75.17.25.12
+        </div>
+    </header>
+
+    <div class="alert-card">
+        <div class="alert-icon"><i class="fas fa-exclamation-triangle"></i></div>
+        <div>
+            <h3 style="margin:0 0 5px 0;">Обнаружены критические отклонения</h3>
+            <span>Уровень <strong>Триглицеридов</strong> значительно превышает норму. Рекомендуется срочная консультация терапевта или кардиолога.</span>
+        </div>
+    </div>
+
+    <h2 style="margin-bottom: 20px; color: var(--text-main);">Биохимические исследования</h2>
+    
+    <div class="results-grid">
+
+        <div class="card critical" style="animation-delay: 0.1s;">
+            <div class="card-header">
+                <span class="metric-title">Триглицериды</span>
+                <span class="metric-badge badge-high">Высокий</span>
+            </div>
+            <div>
+                <span class="metric-value">3.93</span><span class="metric-unit">моль/л</span>
+            </div>
+            <div class="bar-bg"><div class="bar-fill" style="width: 100%; background: var(--danger);"></div></div>
+            <div class="metric-unit">Норма: 0.0 - 2.3</div>
+            
+            <button class="doc-toggle" onclick="toggleDoc(this)">
+                <i class="fas fa-book-medical" style="margin-right: 5px;"></i> Справка
+            </button>
+            <div class="doc-content">
+                Жиры, являющиеся основным источником энергии для клеток. Высокий уровень повышает риск панкреатита и заболеваний сердца.
+                <br><a href="https://www.google.com/search?q=триглицериды+повышены+что+это" target="_blank" class="external-link">Подробнее в Google <i class="fas fa-external-link-alt"></i></a>
+            </div>
+        </div>
+
+        <div class="card" style="animation-delay: 0.2s;">
+            <div class="card-header">
+                <span class="metric-title">Креатинин</span>
+                <span class="metric-badge badge-low">Ниже нормы</span>
+            </div>
+            <div>
+                <span class="metric-value">42.9</span><span class="metric-unit">мкмоль/л</span>
+            </div>
+            <div class="bar-bg"><div class="bar-fill" style="width: 48%; background: var(--warning);"></div></div>
+            <div class="metric-unit">Норма: 44.0 - 80.0</div>
+
+            <button class="doc-toggle" onclick="toggleDoc(this)">
+                <i class="fas fa-book-medical" style="margin-right: 5px;"></i> Справка
+            </button>
+            <div class="doc-content">
+                Показатель работы почек и мышечной массы. Снижение может указывать на диету с низким содержанием белка или малую мышечную массу.
+                <br><a href="https://www.google.com/search?q=креатинин+понижен+причины" target="_blank" class="external-link">Подробнее в Google <i class="fas fa-external-link-alt"></i></a>
+            </div>
+        </div>
+
+        <div class="card" style="animation-delay: 0.3s;">
+            <div class="card-header">
+                <span class="metric-title">Глюкоза</span>
+                <span class="metric-badge badge-norm">Норма</span>
+            </div>
+            <div>
+                <span class="metric-value">5.7</span><span class="metric-unit">ммоль/л</span>
+            </div>
+            <div class="bar-bg"><div class="bar-fill" style="width: 70%; background: var(--success);"></div></div>
+            <div class="metric-unit">Норма: 3.9 - 6.4</div>
+
+            <button class="doc-toggle" onclick="toggleDoc(this)">
+                <i class="fas fa-book-medical" style="margin-right: 5px;"></i> Справка
+            </button>
+            <div class="doc-content">
+                Основной показатель углеводного обмена. Важен для диагностики диабета. У вас отличный показатель.
+                <br><a href="https://www.google.com/search?q=норма+глюкозы+в+крови" target="_blank" class="external-link">Подробнее в Google <i class="fas fa-external-link-alt"></i></a>
+            </div>
+        </div>
+
+        <div class="card" style="animation-delay: 0.4s;">
+            <div class="card-header">
+                <span class="metric-title">Холестерин общий</span>
+                <span class="metric-badge badge-norm">Норма</span>
+            </div>
+            <div>
+                <span class="metric-value">4.31</span><span class="metric-unit">ммоль/л</span>
+            </div>
+            <div class="bar-bg"><div class="bar-fill" style="width: 60%; background: var(--success);"></div></div>
+            <div class="metric-unit">Норма: 3.0 - 5.2</div>
+
+            <button class="doc-toggle" onclick="toggleDoc(this)">
+                <i class="fas fa-book-medical" style="margin-right: 5px;"></i> Справка
+            </button>
+            <div class="doc-content">
+                Жироподобное вещество, жизненно необходимое организму, но его избыток вреден для сосудов.
+                <br><a href="https://www.google.com/search?q=общий+холестерин+норма" target="_blank" class="external-link">Подробнее в Google <i class="fas fa-external-link-alt"></i></a>
+            </div>
+        </div>
+
+        <div class="card" style="animation-delay: 0.5s;">
+            <div class="card-header">
+                <span class="metric-title">АЛТ (ALT)</span>
+                <span class="metric-badge badge-norm">Норма</span>
+            </div>
+            <div>
+                <span class="metric-value">31.7</span><span class="metric-unit">МЕ/л</span>
+            </div>
+            <div class="bar-bg"><div class="bar-fill" style="width: 90%; background: var(--success);"></div></div>
+            <div class="metric-unit">Норма: 0.0 - 34.0</div>
+
+            <button class="doc-toggle" onclick="toggleDoc(this)">
+                <i class="fas fa-book-medical" style="margin-right: 5px;"></i> Справка
+            </button>
+            <div class="doc-content">
+                Аланинаминотрансфераза. Фермент печени. Повышение говорит о разрушении клеток печени. Ваш показатель в норме.
+                <br><a href="https://www.google.com/search?q=алт+анализ+крови" target="_blank" class="external-link">Подробнее в Google <i class="fas fa-external-link-alt"></i></a>
+            </div>
+        </div>
+
+        <div class="card" style="animation-delay: 0.6s;">
+            <div class="card-header">
+                <span class="metric-title">С-реактивный белок</span>
+                <span class="metric-badge badge-norm">Идеально</span>
+            </div>
+            <div>
+                <span class="metric-value">0.0</span><span class="metric-unit">мг/л</span>
+            </div>
+            <div class="bar-bg"><div class="bar-fill" style="width: 2%; background: var(--success);"></div></div>
+            <div class="metric-unit">Норма: 0.0 - 10.0</div>
+
+            <button class="doc-toggle" onclick="toggleDoc(this)">
+                <i class="fas fa-book-medical" style="margin-right: 5px;"></i> Справка
+            </button>
+            <div class="doc-content">
+                Маркер острой фазы воспаления. Нулевой результат означает полное отсутствие активных воспалительных процессов.
+                <br><a href="https://www.google.com/search?q=с-реактивный+белок+норма" target="_blank" class="external-link">Подробнее в Google <i class="fas fa-external-link-alt"></i></a>
+            </div>
+        </div>
+
+        <div class="card" style="animation-delay: 0.7s;">
+            <div class="card-header">
+                <span class="metric-title">Билирубин общий</span>
+                <span class="metric-badge badge-norm">Норма</span>
+            </div>
+            <div>
+                <span class="metric-value">4.0</span><span class="metric-unit">мкмоль/л</span>
+            </div>
+            <div class="bar-bg"><div class="bar-fill" style="width: 20%; background: var(--success);"></div></div>
+            <div class="metric-unit">Норма: 2.0 - 21.0</div>
+
+            <button class="doc-toggle" onclick="toggleDoc(this)">
+                <i class="fas fa-book-medical" style="margin-right: 5px;"></i> Справка
+            </button>
+            <div class="doc-content">
+                Пигмент желчи. Показывает работу печени и желчевыводящих путей.
+                <br><a href="https://www.google.com/search?q=билирубин+общий+норма" target="_blank" class="external-link">Подробнее в Google <i class="fas fa-external-link-alt"></i></a>
+            </div>
+        </div>
+
+         <div class="card" style="animation-delay: 0.8s;">
+            <div class="card-header">
+                <span class="metric-title">ЛПНП (Плохой)</span>
+                <span class="metric-badge badge-norm">Норма</span>
+            </div>
+            <div>
+                <span class="metric-value">3.09</span><span class="metric-unit">ммоль/л</span>
+            </div>
+            <div class="bar-bg"><div class="bar-fill" style="width: 75%; background: var(--success);"></div></div>
+            <div class="metric-unit">Норма: 0.0 - 4.11</div>
+
+            <button class="doc-toggle" onclick="toggleDoc(this)">
+                <i class="fas fa-book-medical" style="margin-right: 5px;"></i> Справка
+            </button>
+            <div class="doc-content">
+                Липопротеины низкой плотности ("плохой" холестерин). Основной переносчик холестерина в ткани.
+                <br><a href="https://www.google.com/search?q=лпнп+норма" target="_blank" class="external-link">Подробнее в Google <i class="fas fa-external-link-alt"></i></a>
+            </div>
+        </div>
+        
+    </div> <div style="text-align: center; margin-top: 50px; color: var(--text-secondary); padding-bottom: 20px;">
+        <p>Для просмотра остальных показателей (в пределах нормы) обратитесь к полному PDF протоколу.<br>
+        <em>Дисклеймер: Данная визуализация создана автоматически и не является официальным медицинским диагнозом.</em></p>
+    </div>
+</div>
+
+<script>
+    function toggleDoc(button) {
+        const content = button.nextElementSibling;
+        const isOpen = content.classList.contains('open');
+        
+        // Close all others (optional, for cleaner UI)
+        document.querySelectorAll('.doc-content').forEach(el => el.classList.remove('open'));
+        
+        if (!isOpen) {
+            content.classList.add('open');
+        }
+    }
+</script>
+
+</body>
+</html>
