@@ -91,7 +91,7 @@
 
         #loginScreen { text-align: center; padding-top: 40px; }
         .pin-input { background: rgba(255,255,255,0.1); border: 1px solid var(--border); color: white; font-size: 24px; padding: 15px; border-radius: 16px; width: 200px; text-align: center; letter-spacing: 5px; margin-bottom: 20px; outline: none; }
-        .pin-btn { background: var(--primary); color: white; border: none; padding: 15px; font-size: 16px; font-weight: 600; border-radius: 14px; width: 100%; margin-top: 10px; }
+        .pin-btn { background: var(--primary); color: white; border: none; padding: 15px; font-size: 16px; font-weight: 600; border-radius: 14px; width: 100%; margin-top: 10px; cursor: pointer; }
 
         /* МОДАЛКА */
         .modal-overlay {
@@ -104,7 +104,7 @@
         .modal-overlay.open .modal-card { transform: scale(1); }
         .modal-input { width: 100%; background: #2C2C2E; border: none; padding: 12px; border-radius: 10px; color: white; font-size: 16px; box-sizing: border-box; margin-bottom: 10px; }
         
-        /* ПРИВЕТСТВЕННЫЙ ЭКРАН (NEW) */
+        /* ПРИВЕТСТВЕННЫЙ ЭКРАН */
         .welcome-card {
             background: linear-gradient(135deg, #1c1c1e, #000);
             text-align: center; border: 1px solid rgba(255,255,255,0.1);
@@ -121,7 +121,7 @@
             background: rgba(20, 20, 20, 0.9); backdrop-filter: blur(20px); border-top: 1px solid var(--border);
             display: flex; justify-content: space-around; padding-bottom: var(--safe-area-bottom); z-index: 100;
         }
-        .tab-btn { background: none; border: none; color: #666; font-size: 10px; width: 100%; }
+        .tab-btn { background: none; border: none; color: #666; font-size: 10px; width: 100%; cursor: pointer; }
         .tab-btn span { font-size: 24px; display: block; margin-bottom: 2px; }
         .tab-btn.active { color: var(--primary); }
 
@@ -216,6 +216,10 @@
             <div id="editorList" style="margin-bottom:20px;"></div>
             
             <button class="pin-btn" onclick="addNewLesson()" style="background:rgba(255,255,255,0.1);">+ Добавить урок</button>
+            
+            <button class="pin-btn" onclick="resetToFactory()" style="background:rgba(255, 69, 58, 0.1); color: var(--danger); margin-top: 40px; border: 1px solid rgba(255, 69, 58, 0.3);">
+                ⚠ Сбросить всё до заводских настроек
+            </button>
         </div>
     </div>
 </div>
@@ -278,9 +282,7 @@
     window.selectedDay = 1;
     window.editingIndex = -1;
 
-    // --- ЛОГИКА ПРИВЕТСТВИЯ ---
     function checkWelcome() {
-        // Проверяем, видел ли пользователь обновление
         const seen = localStorage.getItem('schoolOS_welcome_v8');
         if (!seen) {
             document.getElementById('welcomeModal').classList.add('open');
@@ -292,7 +294,6 @@
         localStorage.setItem('schoolOS_welcome_v8', 'true');
     }
 
-    // --- FIREBASE SYNC ---
     onValue(dbRef, (snapshot) => {
         const data = snapshot.val();
         document.getElementById('cloudIndicator').classList.add('online');
@@ -313,7 +314,19 @@
         set(dbRef, { schedule: window.schedule, settings: window.settings });
     }
 
-    // --- UI FUNCS ---
+    // --- ФУНКЦИЯ СБРОСА ---
+    window.resetToFactory = function() {
+        if(confirm("⚠ Вы уверены? Все изменения будут стерты, расписание вернется к исходному состоянию.")) {
+            window.schedule = JSON.parse(JSON.stringify(defaultSchedule));
+            window.settings = { theme: '#0A84FF', showEmoji: true };
+            pushToCloud();
+            applyTheme(window.settings.theme);
+            renderAdminList();
+            renderScheduleList();
+            alert("Данные успешно сброшены!");
+        }
+    }
+
     window.setTheme = function(color, el) {
         window.settings.theme = color;
         applyTheme(color);
@@ -399,6 +412,7 @@
 
     window.renderScheduleList = function() {
         const container = document.getElementById('fullScheduleList');
+        if(!container) return;
         container.innerHTML = '';
         const todayIdx = new Date().getDay();
         const days = ['Вс','Понедельник','Вторник','Среда','Четверг','Пятница','Сб'];
@@ -428,6 +442,7 @@
             const dayNum = i+1;
             const btn = document.createElement('div');
             btn.style.padding = "8px 16px"; btn.style.borderRadius = "20px";
+            btn.style.cursor = "pointer";
             btn.style.background = (dayNum===window.selectedDay) ? 'var(--primary)' : 'rgba(255,255,255,0.1)';
             btn.innerText = d;
             btn.onclick = () => { window.selectedDay = dayNum; window.initAdmin(); };
@@ -447,13 +462,21 @@
     window.openEdit = function(idx) {
         window.editingIndex = idx;
         const l = window.schedule[window.selectedDay][idx];
-        document.getElementById('editIcon').value = l.i || "📚"; document.getElementById('editName').value = l.n; document.getElementById('editRoom').value = l.r; document.getElementById('editStart').value = l.s; document.getElementById('editEnd').value = l.e;
+        document.getElementById('editIcon').value = l.i || "📚"; 
+        document.getElementById('editName').value = l.n; 
+        document.getElementById('editRoom').value = l.r; 
+        document.getElementById('editStart').value = l.s; 
+        document.getElementById('editEnd').value = l.e;
         document.getElementById('editModal').classList.add('open');
     }
 
     window.addNewLesson = function() {
         window.editingIndex = -1;
-        document.getElementById('editIcon').value = "📚"; document.getElementById('editName').value = ""; document.getElementById('editRoom').value = ""; document.getElementById('editStart').value = ""; document.getElementById('editEnd').value = "";
+        document.getElementById('editIcon').value = "📚"; 
+        document.getElementById('editName').value = ""; 
+        document.getElementById('editRoom').value = ""; 
+        document.getElementById('editStart').value = ""; 
+        document.getElementById('editEnd').value = "";
         document.getElementById('editModal').classList.add('open');
     }
 
@@ -473,6 +496,7 @@
     }
 
     window.closeModal = function() { document.getElementById('editModal').classList.remove('open'); }
+    
     window.switchTab = function(id, btn) {
         document.querySelectorAll('.view-section').forEach(e=>e.classList.remove('active'));
         document.getElementById(id).classList.add('active');
@@ -482,8 +506,6 @@
 
     setInterval(window.updateTimer, 1000);
     window.updateTimer();
-    
-    // Запускаем проверку приветствия
     setTimeout(checkWelcome, 500);
 
 </script>
