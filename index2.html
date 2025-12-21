@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мобильная Касса 3.0</title>
+    <style>
+        :root {
+            --primary: #4CAF50;
+            --accent: #2196F3;
+            --bg: #f4f4f9;
+            --card-bg: #ffffff;
+            --text: #333;
+            --coffee: #795548;
+            --dish: #FF9800;
+            --dessert: #E91E63;
+        }
+
+        * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        
+        body { margin: 0; padding: 0; background: var(--bg); color: var(--text); padding-bottom: 90px; }
+
+        /* Навигация */
+        .nav-tabs {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            display: flex;
+            background: #fff;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+        }
+        .nav-btn {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            background: transparent;
+            font-size: 14px;
+            font-weight: bold;
+            color: #888;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+        .nav-btn.active { color: var(--accent); border-top: 3px solid var(--accent); background: #f9f9ff; }
+
+        /* Контейнеры */
+        .page { display: none; padding: 15px; animation: fadeIn 0.3s; }
+        .page.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        h2 { margin-top: 0; }
+
+        /* Секция Меню (Касса) */
+        .category-filter {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+        .filter-chip {
+            padding: 8px 16px;
+            border-radius: 20px;
+            background: #e0e0e0;
+            border: none;
+            cursor: pointer;
+            white-space: nowrap;
+            font-weight: 500;
+        }
+        .filter-chip.active { background: var(--text); color: #fff; }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 10px;
+        }
+        
+        .item-card {
+            background: var(--card-bg);
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            text-align: center;
+            cursor: pointer;
+            border-left: 5px solid #ccc;
+            transition: transform 0.1s;
+        }
+        .item-card:active { transform: scale(0.98); }
+        
+        .cat-coffee { border-color: var(--coffee); }
+        .cat-dish { border-color: var(--dish); }
+        .cat-dessert { border-color: var(--dessert); }
+        .cat-tag { font-size: 10px; text-transform: uppercase; color: #888; display: block; margin-bottom: 5px; }
+
+        .price { font-weight: bold; color: var(--primary); font-size: 1.1em; }
+        
+        /* Корзина и Оформление */
+        .cart-panel {
+            background: #fff;
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            border: 1px solid #eee;
+        }
+        .cart-item { display: flex; justify-content: space-between; margin-bottom: 8px; border-bottom: 1px dashed #eee; padding-bottom: 8px; }
+        
+        .checkout-options {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 2px solid #f0f0f0;
+        }
+        .checkout-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .checkout-control {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #fff;
+            font-size: 16px;
+        }
+        .table-input { border-color: var(--accent); background: #f0f8ff; }
+
+        /* Форма добавления товара */
+        .add-item-form {
+            background: #fff;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: none;
+            border: 1px solid var(--accent);
+        }
+        .form-group { margin-bottom: 10px; }
+        input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; }
+        
+        /* Секция Заказов (Кухня) */
+        .order-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        .order-type-badge {
+            position: absolute;
+            top: 0;
+            left: 0;
+            padding: 5px 10px;
+            font-size: 0.75em;
+            font-weight: bold;
+            color: #fff;
+            border-bottom-right-radius: 10px;
+        }
+        .type-dinein { background: var(--accent); }
+        .type-takeout { background: var(--primary); }
+
+        .order-header { display: flex; justify-content: space-between; margin-bottom: 10px; margin-top: 15px; font-weight: bold; }
+        .order-items { margin-bottom: 10px; font-size: 0.95em; color: #444; line-height: 1.4; border-bottom: 1px solid #eee; padding-bottom: 10px;}
+        .order-footer { display: flex; justify-content: space-between; align-items: center; font-size: 0.9em; color: #666;}
+        
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            text-transform: uppercase;
+            color: #fff;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        .status-new { background-color: #9E9E9E; }
+        .status-cooking { background-color: #FF9800; }
+        .status-done { background-color: #4CAF50; }
+
+        /* Кнопки */
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 5px;
+            font-size: 16px;
+        }
+        .btn-primary { background: var(--accent); color: white; }
+        .btn-success { background: var(--primary); color: white; }
+        .btn-outline { background: transparent; border: 1px solid #aaa; color: #555; }
+        .delete-btn { color: #ff4444; cursor: pointer; margin-left: 10px; padding: 0 5px; font-weight: bold;}
+
+    </style>
+</head>
+<body>
+
+    <div id="page-pos" class="page active">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
+            <h2>Новый заказ</h2>
+            <button class="btn-outline" style="width:auto; padding:8px 15px;" onclick="toggleAddForm()">⚙ Меню</button>
+        </div>
+
+        <div id="addItemForm" class="add-item-form">
+            <h3>Добавить позицию</h3>
+            <div class="form-group"><input type="text" id="newName" placeholder="Название (напр. Латте)"></div>
+            <div class="form-group"><input type="number" id="newPrice" placeholder="Цена"></div>
+            <div class="form-group">
+                <select id="newCategory">
+                    <option value="coffee">Кофе</option>
+                    <option value="dish">Блюдо (Кухня)</option>
+                    <option value="dessert">Десерт</option>
+                </select>
+            </div>
+            <button class="btn btn-primary" onclick="addNewItem()">Сохранить в меню</button>
+        </div>
+
+        <div class="category-filter">
+            <button class="filter-chip active" onclick="filterMenu('all')">Все</button>
+            <button class="filter-chip" onclick="filterMenu('coffee')">Кофе</button>
+            <button class="filter-chip" onclick="filterMenu('dish')">Еда</button>
+            <button class="filter-chip" onclick="filterMenu('dessert')">Десерты</button>
+        </div>
+
+        <div id="menuGrid" class="menu-grid"></div>
+
+        <div class="cart-panel" id="cartPanel" style="display:none;">
+            <h3>Состав заказа</h3>
+            <div id="cartItems"></div>
+            
+            <div class="checkout-options">
+                <div class="checkout-row">
+                    <select id="orderType" class="checkout-control" onchange="toggleTableInput()">
+                        <option value="takeout">👜 С собой</option>
+                        <option value="dinein">🍽 В зале</option>
+                    </select>
+                    <input type="number" id="tableNumber" class="checkout-control table-input" placeholder="№ Стола" style="display:none;">
+                </div>
+                
+                <div class="checkout-row">
+                    <select id="paymentMethod" class="checkout-control">
+                        <option value="card">💳 Карта</option>
+                        <option value="cash">💵 Наличные</option>
+                        <option value="qr">📱 QR / Перевод</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="display:flex; justify-content:space-between; margin-top:15px; font-weight:bold; font-size:1.2em;">
+                <span>Итого:</span>
+                <span id="cartTotal">0</span>
+            </div>
+            <button class="btn btn-success" onclick="createOrder()">Оплатить и Отправить</button>
+        </div>
+    </div>
+
+    <div id="page-orders" class="page">
+        <h2>Лента заказов</h2>
+        <div id="ordersList"></div>
+        <br><br>
+        <button class="btn btn-outline" onclick="clearHistory()">🗑 Очистить историю</button>
+    </div>
+
+    <div class="nav-tabs">
+        <button class="nav-btn active" onclick="switchTab('pos', this)">Касса</button>
+        <button class="nav-btn" onclick="switchTab('orders', this)">Монитор <span id="activeCount"></span></button>
+    </div>
+
+<script>
+    // --- ДАННЫЕ ---
+    const defaultMenu = [
+        { id: 1, name: 'Капучино', price: 180, category: 'coffee' },
+        { id: 2, name: 'Американо', price: 120, category: 'coffee' },
+        { id: 3, name: 'Сэндвич', price: 250, category: 'dish' },
+        { id: 4, name: 'Круассан', price: 150, category: 'dessert' },
+    ];
+
+    let menu = JSON.parse(localStorage.getItem('pos_menu')) || defaultMenu;
+    let orders = JSON.parse(localStorage.getItem('pos_orders')) || [];
+    let cart = [];
+
+    window.onload = function() {
+        renderMenu('all');
+        renderOrders();
+    };
+
+    // --- ЛОГИКА МЕНЮ ---
+    function toggleAddForm() {
+        const form = document.getElementById('addItemForm');
+        form.style.display = form.style.display === 'none' || form.style.display === '' ? 'block' : 'none';
+    }
+
+    function toggleTableInput() {
+        const type = document.getElementById('orderType').value;
+        const input = document.getElementById('tableNumber');
+        if(type === 'dinein') {
+            input.style.display = 'block';
+            input.focus();
+        } else {
+            input.style.display = 'none';
+            input.value = '';
+        }
+    }
+
+    function addNewItem() {
+        const name = document.getElementById('newName').value;
+        const price = parseFloat(document.getElementById('newPrice').value);
+        const category = document.getElementById('newCategory').value;
+
+        if (!name || !price) return alert('Заполните название и цену');
+
+        menu.push({ id: Date.now(), name, price, category });
+        saveData();
+        renderMenu('all');
+        
+        document.getElementById('newName').value = '';
+        document.getElementById('newPrice').value = '';
+        toggleAddForm();
+    }
+
+    function filterMenu(category) {
+        document.querySelectorAll('.filter-chip').forEach(btn => btn.classList.remove('active'));
+        event.target.classList.add('active');
+        renderMenu(category);
+    }
+
+    function renderMenu(filterCat) {
+        const grid = document.getElementById('menuGrid');
+        grid.innerHTML = '';
+        const itemsToShow = filterCat === 'all' ? menu : menu.filter(item => item.category === filterCat);
+
+        itemsToShow.forEach(item => {
+            const el = document.createElement('div');
+            el.className = `item-card cat-${item.category}`;
+            let catName = item.category === 'coffee' ? 'Кофе' : (item.category === 'dish' ? 'Еда' : 'Десерт');
+            el.innerHTML = `<span class="cat-tag">${catName}</span><strong>${item.name}</strong><div class="price">${item.price} ₽</div>`;
+            el.onclick = () => addToCart(item);
+            grid.appendChild(el);
+        });
+    }
+
+    // --- ЛОГИКА КОРЗИНЫ ---
+    function addToCart(item) {
+        cart.push(item);
+        renderCart();
+    }
+
+    function removeFromCart(index) {
+        cart.splice(index, 1);
+        renderCart();
+    }
+
+    function renderCart() {
+        const panel = document.getElementById('cartPanel');
+        const container = document.getElementById('cartItems');
+        
+        if (cart.length === 0) {
+            panel.style.display = 'none';
+            return;
+        }
+
+        panel.style.display = 'block';
+        container.innerHTML = '';
+        let total = 0;
+
+        cart.forEach((item, index) => {
+            total += item.price;
+            container.innerHTML += `
+                <div class="cart-item">
+                    <span>${item.name}</span>
+                    <div><b>${item.price}</b> <span class="delete-btn" onclick="removeFromCart(${index})">×</span></div>
+                </div>`;
+        });
+
+        document.getElementById('cartTotal').innerText = total + ' ₽';
+    }
+
+    // --- ЛОГИКА ЗАКАЗОВ (ГЛАВНАЯ ЧАСТЬ) ---
+    function createOrder() {
+        if (cart.length === 0) return;
+
+        // Сбор данных из формы
+        const orderType = document.getElementById('orderType').value; // takeout или dinein
+        const tableNum = document.getElementById('tableNumber').value;
+        const payment = document.getElementById('paymentMethod').value;
+        
+        // Валидация столика
+        if (orderType === 'dinein' && !tableNum) {
+            alert('Пожалуйста, укажите номер столика!');
+            return;
+        }
+
+        const newOrder = {
+            id: Math.floor(Math.random() * 9000) + 1000,
+            timestamp: new Date().toLocaleTimeString().slice(0,5),
+            items: [...cart],
+            total: cart.reduce((sum, item) => sum + item.price, 0),
+            status: 'new',
+            type: orderType,   // Сохраняем тип
+            table: tableNum,   // Сохраняем номер стола
+            payment: payment   // Сохраняем метод оплаты
+        };
+
+        orders.unshift(newOrder);
+        saveData();
+        
+        cart = [];
+        renderCart();
+        renderOrders();
+        
+        // Сброс полей
+        document.getElementById('orderType').value = 'takeout';
+        toggleTableInput(); 
+        
+        alert(`Заказ #${newOrder.id} отправлен на кухню`);
+    }
+
+    function renderOrders() {
+        const container = document.getElementById('ordersList');
+        container.innerHTML = '';
+
+        orders.forEach((order, index) => {
+            // Формирование заголовка (Стол или Вынос)
+            let typeHtml = '';
+            if (order.type === 'dinein') {
+                typeHtml = `<span class="order-type-badge type-dinein">СТОЛ №${order.table}</span>`;
+            } else {
+                typeHtml = `<span class="order-type-badge type-takeout">С СОБОЙ</span>`;
+            }
+
+            // Перевод оплаты
+            const payMap = { 'card': 'Карта', 'cash': 'Наличные', 'qr': 'QR/Перевод' };
+            const payText = payMap[order.payment] || order.payment;
+
+            // Статус
+            let statusText = 'Ожидает';
+            let statusClass = 'status-new';
+            if(order.status === 'cooking') { statusText = 'Готовится'; statusClass = 'status-cooking'; }
+            if(order.status === 'done') { statusText = 'Готов'; statusClass = 'status-done'; }
+
+            const itemsStr = order.items.map(i => i.name).join(', ');
+
+            const el = document.createElement('div');
+            el.className = 'order-card';
+            el.innerHTML = `
+                ${typeHtml}
+                <div class="order-header">
+                    <span>#${order.id} <span style="font-weight:normal; color:#999; font-size:0.8em">${order.timestamp}</span></span>
+                    <span class="status-badge ${statusClass}" onclick="changeStatus(${index})">${statusText}</span>
+                </div>
+                <div class="order-items">
+                    ${itemsStr}
+                </div>
+                <div class="order-footer">
+                    <span>Оплата: <b>${payText}</b></span>
+                    <span style="font-size:1.2em; font-weight:bold">${order.total} ₽</span>
+                </div>
+            `;
+            container.appendChild(el);
+        });
+
+        const activeCount = orders.filter(o => o.status !== 'done').length;
+        document.getElementById('activeCount').innerText = activeCount > 0 ? `(${activeCount})` : '';
+    }
+
+    function changeStatus(index) {
+        const statuses = ['new', 'cooking', 'done'];
+        const currentIdx = statuses.indexOf(orders[index].status);
+        const nextIdx = (currentIdx + 1) % statuses.length; // Циклическое переключение
+        
+        orders[index].status = statuses[nextIdx];
+        saveData();
+        renderOrders();
+    }
+
+    function clearHistory() {
+        if(confirm('Удалить закрытые заказы или ВСЕ? \nOK - удалить всё\nОтмена - ничего не делать')) {
+            orders = [];
+            saveData();
+            renderOrders();
+        }
+    }
+
+    function saveData() {
+        localStorage.setItem('pos_menu', JSON.stringify(menu));
+        localStorage.setItem('pos_orders', JSON.stringify(orders));
+    }
+
+    function switchTab(tabId, btn) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('page-' + tabId).classList.add('active');
+        btn.classList.add('active');
+        window.scrollTo(0,0);
+    }
+</script>
+</body>
+</html>
