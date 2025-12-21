@@ -96,146 +96,144 @@
     </div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+            import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        // Твой конфиг
-        const firebaseConfig = {
-          apiKey: "AIzaSyBa3MKrLHcRPauIyzxgxfNpLUphmehJAkg",
-          authDomain: "moon-logistik.firebaseapp.com",
-          databaseURL: "https://moon-logistik-default-rtdb.firebaseio.com",
-          projectId: "moon-logistik",
-          storageBucket: "moon-logistik.firebasestorage.app",
-          messagingSenderId: "335239459996",
-          appId: "1:335239459996:web:98a3cd3508767cfde6a959",
-          measurementId: "G-N3GHR5KS7Q"
-        };
+    // Твой конфиг
+    const firebaseConfig = {
+      apiKey: "AIzaSyBa3MKrLHcRPauIyzxgxfNpLUphmehJAkg",
+      authDomain: "moon-logistik.firebaseapp.com",
+      databaseURL: "https://moon-logistik-default-rtdb.firebaseio.com",
+      projectId: "moon-logistik",
+      storageBucket: "moon-logistik.firebasestorage.app",
+      messagingSenderId: "335239459996",
+      appId: "1:335239459996:web:98a3cd3508767cfde6a959",
+      measurementId: "G-N3GHR5KS7Q"
+    };
 
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-        const statusRef = ref(db, 'cashier_call/status');
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const statusRef = ref(db, 'cashier_call/status');
 
-        // Элементы
-        const activateBtn = document.getElementById('activateBtn');
-        const stopBtn = document.getElementById('stopBtn');
-        const title = document.getElementById('title');
-        const subtitle = document.getElementById('subtitle');
-        const icon = document.getElementById('icon');
-        const body = document.getElementById('body');
-        const connStatus = document.getElementById('connStatus');
+    // Элементы
+    const activateBtn = document.getElementById('activateBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const title = document.getElementById('title');
+    const subtitle = document.getElementById('subtitle');
+    const icon = document.getElementById('icon');
+    const body = document.getElementById('body');
+    const connStatus = document.getElementById('connStatus');
 
-        // Звук
-        const alarm = new Audio('siren.mp3');
+    // Создаем аудио объект глобально
+    let alarm = new Audio();
+    let soundEnabled = false;
+    let wakeLock = null;
+
+    // 1. АКТИВАЦИЯ (Обязательно нужна для iOS/Android)
+    activateBtn.addEventListener('click', () => {
+        // Пробуем жестко задать путь. 
+        // Важно: ./siren.mp3 означает "в этой же папке"
+        alarm.src = "./siren.mp3"; 
         alarm.loop = true;
         alarm.volume = 1.0;
+        
+        // Для iOS нужно явно вызвать load() перед play()
+        alarm.load();
 
-        let soundEnabled = false;
-
-        // 1. АКТИВАЦИЯ (Обязательно нужна для iOS/Android)
-        activateBtn.addEventListener('click', async () => {
-            try {
-                // Запускаем тишину, чтобы "прогреть" аудио-движок
-                await alarm.play();
+        alarm.play()
+            .then(() => {
+                // Если успешно запустилось - сразу ставим на паузу
                 alarm.pause();
                 alarm.currentTime = 0;
                 
+                // Успех!
                 soundEnabled = true;
-                activateBtn.style.display = 'none'; // Прячем кнопку
+                activateBtn.style.display = 'none';
                 title.textContent = "Режим ожидания";
                 subtitle.textContent = "Можно свернуть браузер. Звук сработает.";
                 icon.textContent = "👂";
-                connStatus.textContent = "Подключено";
+                connStatus.textContent = "Подключено (Звук готов)";
                 
-                // Включаем Wake Lock (чтобы экран не гас, если браузер открыт)
                 requestWakeLock();
-                
-            } catch (err) {
-                alert("Ошибка аудио! Разрешите автовоспроизведение в настройках.");
-            }
-        });
-
-        // 2. СЛУШАЕМ БАЗУ ДАННЫХ
-        onValue(statusRef, (snapshot) => {
-            const data = snapshot.val();
-            const isCalling = data ? data.is_calling : false;
-
-            if (isCalling) {
-                startAlarm();
-            } else {
-                stopAlarmLocal();
-            }
-        });
-
-        // 3. ФУНКЦИЯ ТРЕВОГИ
-        function startAlarm() {
-            if (!soundEnabled) return; // Если не активировали, молчим
-
-            body.classList.add('alert-mode');
-            icon.textContent = "🚨";
-            title.textContent = "ВАС ВЫЗЫВАЮТ!";
-            subtitle.textContent = "Клиент ждет в зале";
-            
-            stopBtn.style.display = 'block'; // Показываем кнопку сброса
-            activateBtn.style.display = 'none';
-
-            // Играем звук
-            alarm.play().catch(e => console.log("Браузер заблокировал звук:", e));
-
-            // МАГИЯ ДЛЯ ФОНОВОГО РЕЖИМА (Media Session API)
-            if ('mediaSession' in navigator) {
-                navigator.mediaSession.metadata = new MediaMetadata({
-                    title: '🔥 ТРЕВОГА! 🔥',
-                    artist: 'Клиент ждет',
-                    album: 'Нажми паузу чтобы принят',
-                    artwork: [
-                        { src: 'https://cdn-icons-png.flaticon.com/512/1086/1086581.png', sizes: '512x512', type: 'image/png' }
-                    ]
-                });
-                
-                // Если нажать паузу в шторке уведомлений — считаем, что кассир принял вызов
-                navigator.mediaSession.setActionHandler('pause', () => {
-                   confirmReset();
-                });
-            }
-        }
-
-        // 4. СБРОС ТРЕВОГИ
-        // Срабатывает при нажатии на кнопку на экране
-        stopBtn.addEventListener('click', confirmReset);
-
-        function confirmReset() {
-            // Отправляем в базу, что мы услышали (выключаем у всех)
-            set(statusRef, {
-                is_calling: false,
-                timestamp: Date.now()
+            })
+            .catch((err) => {
+                console.error(err);
+                // ПОКАЗЫВАЕМ ТОЧНУЮ ОШИБКУ ПОЛЬЗОВАТЕЛЮ
+                alert("Ошибка: " + err.message + "\n\nПроверь: 1. Загружен ли файл siren.mp3? 2. Назван ли он маленькими буквами?");
             });
-        }
+    });
 
-        function stopAlarmLocal() {
-            body.classList.remove('alert-mode');
-            alarm.pause();
-            alarm.currentTime = 0;
-            stopBtn.style.display = 'none';
-            
-            if (soundEnabled) {
-                title.textContent = "Режим ожидания";
-                subtitle.textContent = "Система готова к новому вызову";
-                icon.textContent = "👂";
-            }
-        }
+    // 2. СЛУШАЕМ БАЗУ ДАННЫХ
+    onValue(statusRef, (snapshot) => {
+        const data = snapshot.val();
+        const isCalling = data ? data.is_calling : false;
 
-        // --- Wake Lock (Держит телефон активным, если страница открыта) ---
-        let wakeLock = null;
-        async function requestWakeLock() {
-            try {
-                if ('wakeLock' in navigator) {
-                    wakeLock = await navigator.wakeLock.request('screen');
-                    console.log('Wake Lock active');
-                }
-            } catch (err) {
-                console.log(`${err.name}, ${err.message}`);
-            }
+        connStatus.textContent = "Связь с базой есть"; // Проверка связи
+
+        if (isCalling) {
+            startAlarm();
+        } else {
+            stopAlarmLocal();
         }
+    });
+
+    // 3. ФУНКЦИЯ ТРЕВОГИ
+    function startAlarm() {
+        if (!soundEnabled) return; 
+
+        body.classList.add('alert-mode');
+        icon.textContent = "🚨";
+        title.textContent = "ВАС ВЫЗЫВАЮТ!";
+        subtitle.textContent = "Клиент ждет в зале";
+        
+        stopBtn.style.display = 'block'; 
+        activateBtn.style.display = 'none';
+
+        alarm.play().catch(e => console.log("Браузер заблокировал звук:", e));
+
+        if ('mediaSession' in navigator) {
+            navigator.mediaSession.metadata = new MediaMetadata({
+                title: '🔥 ТРЕВОГА! 🔥',
+                artist: 'Клиент ждет',
+                album: 'Moon Logistik',
+                artwork: [{ src: 'https://cdn-icons-png.flaticon.com/512/1086/1086581.png', sizes: '512x512', type: 'image/png' }]
+            });
+            navigator.mediaSession.setActionHandler('pause', () => confirmReset());
+        }
+    }
+
+    // 4. СБРОС ТРЕВОГИ
+    stopBtn.addEventListener('click', confirmReset);
+
+    function confirmReset() {
+        set(statusRef, {
+            is_calling: false,
+            timestamp: Date.now()
+        });
+    }
+
+    function stopAlarmLocal() {
+        body.classList.remove('alert-mode');
+        alarm.pause();
+        alarm.currentTime = 0;
+        stopBtn.style.display = 'none';
+        
+        if (soundEnabled) {
+            title.textContent = "Режим ожидания";
+            subtitle.textContent = "Система готова к новому вызову";
+            icon.textContent = "👂";
+        }
+    }
+
+    // --- Wake Lock ---
+    async function requestWakeLock() {
+        try {
+            if ('wakeLock' in navigator) {
+                wakeLock = await navigator.wakeLock.request('screen');
+            }
+        } catch (err) { console.log(err); }
+    }
+
     </script>
 </body>
 </html>
