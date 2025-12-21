@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Экран Повара (KDS)</title>
+    <style>
+        :root {
+            --bg: #2b2b2b;
+            --card-bg: #333333;
+            --text: #ffffff;
+            --accent: #FF9800; /* Оранжевый для кухни */
+            --green: #4CAF50;
+            --coffee: #a67b5b;
+            --dish: #FF9800;
+            --dessert: #f06292;
+        }
+
+        * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        
+        body { margin: 0; padding: 0; background: var(--bg); color: var(--text); padding-bottom: 20px; }
+
+        /* Шапка */
+        .header {
+            background: #1a1a1a;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #444;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .header h2 { margin: 0; color: var(--accent); }
+        .clock { font-size: 1.2em; font-weight: bold; }
+
+        /* Фильтры */
+        .tabs {
+            display: flex;
+            padding: 10px;
+            background: #222;
+            gap: 10px;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 12px;
+            background: #444;
+            border: none;
+            color: #aaa;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .tab-btn.active { background: var(--accent); color: #000; }
+
+        /* Сетка заказов */
+        .orders-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+            padding: 15px;
+        }
+
+        /* Карточка заказа */
+        .ticket {
+            background: var(--card-bg);
+            border-radius: 8px;
+            border-left: 6px solid #555;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            animation: slideIn 0.3s;
+        }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Стили для статусов и типов */
+        .ticket.status-new { border-left-color: #9E9E9E; }
+        .ticket.status-cooking { border-left-color: var(--accent); background: #3d332a; } /* Подсветка готовящихся */
+        .ticket.status-done { border-left-color: var(--green); opacity: 0.7; }
+
+        .ticket-header {
+            padding: 15px;
+            background: rgba(0,0,0,0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #444;
+        }
+        
+        .ticket-info { display: flex; flex-direction: column; }
+        .ticket-id { font-size: 1.4em; font-weight: bold; color: #fff; }
+        .ticket-time { font-size: 0.9em; color: #aaa; margin-top: 4px; }
+
+        .order-type {
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 0.9em;
+            text-transform: uppercase;
+        }
+        .type-dinein { background: #E91E63; color: white; } /* Яркий для зала */
+        .type-takeout { background: #2196F3; color: white; } /* Синий для собой */
+
+        /* Список товаров */
+        .ticket-body {
+            padding: 15px;
+            flex-grow: 1;
+        }
+        .item-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            font-size: 1.1em;
+            border-bottom: 1px solid #444;
+            padding-bottom: 8px;
+        }
+        .item-row:last-child { border-bottom: none; }
+        
+        /* Маркеры категорий */
+        .cat-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+        .dot-coffee { background: var(--coffee); box-shadow: 0 0 5px var(--coffee); }
+        .dot-dish { background: var(--dish); box-shadow: 0 0 5px var(--dish); }
+        .dot-dessert { background: var(--dessert); box-shadow: 0 0 5px var(--dessert); }
+
+        /* Кнопка действия */
+        .ticket-footer {
+            padding: 10px;
+        }
+        .action-btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+            text-transform: uppercase;
+        }
+
+        .btn-start { background: #555; color: #fff; }
+        .btn-start:hover { background: #666; }
+        
+        .btn-finish { background: var(--accent); color: #000; }
+        .btn-finish:hover { background: #ffaa33; }
+        
+        .btn-complete { background: var(--green); color: #fff; }
+
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h2>👨‍🍳 Кухня</h2>
+        <div class="clock" id="clock">00:00</div>
+    </div>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="setFilter('active')">В работе (<span id="countActive">0</span>)</button>
+        <button class="tab-btn" onclick="setFilter('done')">Готовые</button>
+    </div>
+
+    <div id="ordersContainer" class="orders-container">
+        </div>
+
+<script>
+    // Состояние
+    let orders = [];
+    let currentFilter = 'active';
+
+    // Запуск
+    window.onload = function() {
+        updateClock();
+        loadOrders();
+        
+        // Автоматическое обновление каждые 3 секунды (синхронизация с кассиром)
+        setInterval(loadOrders, 3000);
+        setInterval(updateClock, 1000);
+    };
+
+    function updateClock() {
+        const now = new Date();
+        document.getElementById('clock').innerText = now.toLocaleTimeString().slice(0,5);
+    }
+
+    function loadOrders() {
+        // Читаем ту же базу данных, что и Кассир
+        const raw = localStorage.getItem('pos_orders');
+        if (!raw) return;
+
+        const newOrders = JSON.parse(raw);
+        
+        // Простая проверка, изменились ли данные, чтобы не перерисовывать зря (можно улучшить)
+        if (JSON.stringify(newOrders) !== JSON.stringify(orders)) {
+            orders = newOrders;
+            renderOrders();
+        }
+    }
+
+    function setFilter(filter) {
+        currentFilter = filter;
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        event.target.classList.add('active');
+        renderOrders();
+    }
+
+    function renderOrders() {
+        const container = document.getElementById('ordersContainer');
+        container.innerHTML = '';
+
+        // Фильтрация
+        let filtered = [];
+        if (currentFilter === 'active') {
+            // Показываем "Новые" и "Готовится"
+            filtered = orders.filter(o => o.status === 'new' || o.status === 'cooking');
+        } else {
+            // Показываем "Готовые"
+            filtered = orders.filter(o => o.status === 'done');
+        }
+
+        // Обновляем счетчик
+        const activeCount = orders.filter(o => o.status !== 'done').length;
+        document.getElementById('countActive').innerText = activeCount;
+
+        if (filtered.length === 0) {
+            container.innerHTML = '<div style="color:#777; padding:20px; width:100%; text-align:center;">Нет заказов</div>';
+            return;
+        }
+
+        // Рендер карточек
+        filtered.forEach((order, index) => {
+            // Находим реальный индекс в большом массиве, чтобы корректно сохранить статус
+            const realIndex = orders.findIndex(o => o.id === order.id);
+
+            // Определение стиля типа заказа
+            const typeClass = order.type === 'dinein' ? 'type-dinein' : 'type-takeout';
+            const typeText = order.type === 'dinein' ? `СТОЛ ${order.table}` : 'С СОБОЙ';
+
+            // Определение кнопки
+            let btnHtml = '';
+            if (order.status === 'new') {
+                btnHtml = `<button class="action-btn btn-start" onclick="updateStatus(${realIndex}, 'cooking')">🔥 Начать готовить</button>`;
+            } else if (order.status === 'cooking') {
+                btnHtml = `<button class="action-btn btn-finish" onclick="updateStatus(${realIndex}, 'done')">✅ Заказ готов</button>`;
+            } else {
+                btnHtml = `<button class="action-btn btn-complete" disabled>Отдан</button>`;
+            }
+
+            // Рендер товаров
+            let itemsHtml = '';
+            order.items.forEach(item => {
+                let dotClass = 'dot-dish'; // по умолчанию
+                if(item.category === 'coffee') dotClass = 'dot-coffee';
+                if(item.category === 'dessert') dotClass = 'dot-dessert';
+                
+                itemsHtml += `
+                    <div class="item-row">
+                        <div class="cat-dot ${dotClass}"></div>
+                        <span>${item.name}</span>
+                    </div>
+                `;
+            });
+
+            const card = document.createElement('div');
+            card.className = `ticket status-${order.status}`;
+            card.innerHTML = `
+                <div class="ticket-header">
+                    <div class="ticket-info">
+                        <span class="ticket-id">#${order.id}</span>
+                        <span class="ticket-time">Принят: ${order.timestamp}</span>
+                    </div>
+                    <div class="order-type ${typeClass}">${typeText}</div>
+                </div>
+                <div class="ticket-body">
+                    ${itemsHtml}
+                </div>
+                <div class="ticket-footer">
+                    ${btnHtml}
+                </div>
+            `;
+            container.appendChild(card);
+        });
+    }
+
+    function updateStatus(index, status) {
+        orders[index].status = status;
+        localStorage.setItem('pos_orders', JSON.stringify(orders));
+        renderOrders();
+        // Кассир увидит изменение при своем следующем обновлении
+    }
+
+</script>
+</body>
+</html>
