@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Новогодний Вызов</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: radial-gradient(circle, #8b0000 0%, #3a0000 100%); /* Глубокий красный */
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+            color: white;
+            user-select: none;
+        }
+
+        /* --- СНЕГ --- */
+        .snowflake {
+            position: absolute;
+            top: -10px;
+            color: #fff;
+            font-size: 1em;
+            font-family: Arial;
+            text-shadow: 0 0 1px #000;
+            user-select: none;
+            z-index: 1;
+            pointer-events: none; /* Чтобы снег не мешал нажимать */
+            animation-name: fall;
+            animation-timing-function: linear;
+            animation-iteration-count: infinite;
+        }
+
+        @keyframes fall {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(105vh) rotate(360deg); opacity: 0.3; }
+        }
+
+        /* --- КНОПКА-ИГРУШКА --- */
+        .ornament-container {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Веревочка */
+        .string {
+            width: 2px;
+            height: 100px;
+            background: #ffd700; /* Золото */
+            position: absolute;
+            top: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        #callBtn {
+            width: 260px;
+            height: 260px;
+            border-radius: 50%;
+            border: 4px solid #ffd700; /* Золотая окантовка */
+            background: radial-gradient(circle at 30% 30%, #ff4d4d, #b30000);
+            box-shadow: 
+                0 0 20px rgba(255, 215, 0, 0.3), /* Золотое свечение */
+                inset -10px -10px 30px rgba(0,0,0,0.5); /* Объем */
+            cursor: pointer;
+            outline: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s ease;
+            position: relative;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Блик на шарике */
+        #callBtn::after {
+            content: '';
+            position: absolute;
+            top: 15%;
+            left: 15%;
+            width: 50px;
+            height: 30px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.4);
+            transform: rotate(-45deg);
+        }
+
+        #callBtn h1 {
+            font-size: 1.8rem;
+            margin: 0;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            z-index: 2;
+        }
+
+        #callBtn p {
+            font-size: 0.9rem;
+            margin-top: 5px;
+            opacity: 0.9;
+            z-index: 2;
+        }
+
+        /* --- СОСТОЯНИЕ АКТИВНОГО ВЫЗОВА --- */
+        #callBtn.calling {
+            background: radial-gradient(circle at 30% 30%, #4CAF50, #006400); /* Зеленый шар */
+            animation: ding-dong 1s infinite alternate;
+            box-shadow: 0 0 50px #ffd700; /* Сильное золотое свечение */
+        }
+
+        @keyframes ding-dong {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.05); }
+        }
+
+        .status-msg {
+            margin-top: 30px;
+            font-size: 1.2rem;
+            text-align: center;
+            min-height: 1.5em;
+            color: #ffd700;
+            text-shadow: 0 2px 4px black;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="snow-container"></div>
+
+    <div class="ornament-container">
+        <div class="string"></div>
+        <button id="callBtn">
+            <h1>🎄 ВЫЗВАТЬ</h1>
+            <p>сотрудника</p>
+        </button>
+        <div class="status-msg" id="statusMsg">Счастливого Нового Года!</div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        const firebaseConfig = {
+          apiKey: "AIzaSyBa3MKrLHcRPauIyzxgxfNpLUphmehJAkg",
+          authDomain: "moon-logistik.firebaseapp.com",
+          databaseURL: "https://moon-logistik-default-rtdb.firebaseio.com",
+          projectId: "moon-logistik",
+          storageBucket: "moon-logistik.firebasestorage.app",
+          messagingSenderId: "335239459996",
+          appId: "1:335239459996:web:98a3cd3508767cfde6a959",
+          measurementId: "G-N3GHR5KS7Q"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const statusRef = ref(db, 'cashier_call/status');
+
+        const btn = document.getElementById('callBtn');
+        const btnTitle = btn.querySelector('h1');
+        const btnSub = btn.querySelector('p');
+        const statusMsg = document.getElementById('statusMsg');
+        
+        let isCalling = false;
+
+        // 1. СЛУШАЕМ БАЗУ (Главная магия тут)
+        onValue(statusRef, (snapshot) => {
+            const data = snapshot.val();
+            isCalling = data ? data.is_calling : false;
+            updateAnimation(isCalling);
+        });
+
+        // 2. ОТПРАВЛЯЕМ ВЫЗОВ
+        btn.addEventListener('click', () => {
+            // Если уже вызываем -> ничего не делаем или отменяем (по желанию).
+            // Здесь сделаем переключатель.
+            const newState = !isCalling;
+            
+            set(statusRef, {
+                is_calling: newState,
+                timestamp: Date.now()
+            });
+        });
+
+        function updateAnimation(active) {
+            if (active) {
+                // == РЕЖИМ ОЖИДАНИЯ ==
+                btn.classList.add('calling');
+                btnTitle.textContent = "🎅 ОЖИДАЙТЕ";
+                btnSub.textContent = "сигнал отправлен...";
+                statusMsg.textContent = "Сотрудник мчится на оленях!";
+            } else {
+                // == ОБЫЧНЫЙ РЕЖИМ ==
+                btn.classList.remove('calling');
+                btnTitle.textContent = "🎄 ВЫЗВАТЬ";
+                btnSub.textContent = "сотрудника";
+                statusMsg.textContent = "Нажмите шар, чтобы позвать помощь";
+            }
+        }
+
+        // --- ГЕНЕРАТОР СНЕГА (Визуальный эффект) ---
+        function createSnowflake() {
+            const snowflake = document.createElement('div');
+            snowflake.classList.add('snowflake');
+            snowflake.textContent = '❄';
+            
+            // Случайная позиция и размер
+            snowflake.style.left = Math.random() * 100 + 'vw';
+            snowflake.style.animationDuration = Math.random() * 3 + 2 + 's'; // от 2 до 5 сек
+            snowflake.style.opacity = Math.random();
+            snowflake.style.fontSize = Math.random() * 20 + 10 + 'px';
+
+            document.body.appendChild(snowflake);
+
+            // Удаляем снежинку, когда она упала
+            setTimeout(() => {
+                snowflake.remove();
+            }, 5000);
+        }
+
+        // Запускаем снег
+        setInterval(createSnowflake, 200);
+
+    </script>
+</body>
+</html>
