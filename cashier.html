@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🔔 ПУЛЬТ КАССИРА</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #1a1a1a;
+            color: white;
+            font-family: sans-serif;
+            transition: background-color 0.3s;
+        }
+
+        .status-card {
+            background: #333;
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            width: 80%;
+            max-width: 400px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        h1 { margin: 0 0 10px; font-size: 24px; }
+        p { color: #aaa; margin-bottom: 30px; }
+
+        /* Кнопка активации (Главная) */
+        .btn {
+            width: 100%;
+            padding: 20px;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: transform 0.2s;
+        }
+
+        .btn:active { transform: scale(0.96); }
+
+        /* Зеленая кнопка (Готовность) */
+        .btn-ready {
+            background-color: #4CAF50;
+            color: white;
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+        }
+
+        /* Красная кнопка (Сброс тревоги) */
+        .btn-stop {
+            background-color: #ff4444;
+            color: white;
+            animation: pulse-red 1s infinite;
+            display: none; /* Скрыта по умолчанию */
+            font-size: 22px;
+            box-shadow: 0 0 30px rgba(255, 68, 68, 0.6);
+        }
+
+        @keyframes pulse-red {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 68, 68, 0.7); }
+            70% { transform: scale(1.05); box-shadow: 0 0 0 20px rgba(255, 68, 68, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 68, 68, 0); }
+        }
+
+        .alert-mode { background-color: #2a0000; }
+        
+        /* Индикатор активности */
+        .indicator {
+            margin-top: 20px;
+            font-size: 12px;
+            color: #666;
+        }
+        .indicator span { color: #4CAF50; }
+    </style>
+</head>
+<body id="body">
+
+    <div class="status-card">
+        <div id="icon" style="font-size: 60px; margin-bottom: 20px;">😴</div>
+        <h1 id="title">Система спит</h1>
+        <p id="subtitle">Нажмите кнопку, чтобы активировать звук</p>
+
+        <button id="activateBtn" class="btn btn-ready">🔊 ВКЛЮЧИТЬ ЗВУК</button>
+
+        <button id="stopBtn" class="btn btn-stop">🔕 Я ИДУ!</button>
+        
+        <div class="indicator">Статус соединения: <span id="connStatus">Ожидание...</span></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        // Твой конфиг
+        const firebaseConfig = {
+          apiKey: "AIzaSyBa3MKrLHcRPauIyzxgxfNpLUphmehJAkg",
+          authDomain: "moon-logistik.firebaseapp.com",
+          databaseURL: "https://moon-logistik-default-rtdb.firebaseio.com",
+          projectId: "moon-logistik",
+          storageBucket: "moon-logistik.firebasestorage.app",
+          messagingSenderId: "335239459996",
+          appId: "1:335239459996:web:98a3cd3508767cfde6a959",
+          measurementId: "G-N3GHR5KS7Q"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const statusRef = ref(db, 'cashier_call/status');
+
+        // Элементы
+        const activateBtn = document.getElementById('activateBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const title = document.getElementById('title');
+        const subtitle = document.getElementById('subtitle');
+        const icon = document.getElementById('icon');
+        const body = document.getElementById('body');
+        const connStatus = document.getElementById('connStatus');
+
+        // Звук
+        const alarm = new Audio('siren.mp3');
+        alarm.loop = true;
+        alarm.volume = 1.0;
+
+        let soundEnabled = false;
+
+        // 1. АКТИВАЦИЯ (Обязательно нужна для iOS/Android)
+        activateBtn.addEventListener('click', async () => {
+            try {
+                // Запускаем тишину, чтобы "прогреть" аудио-движок
+                await alarm.play();
+                alarm.pause();
+                alarm.currentTime = 0;
+                
+                soundEnabled = true;
+                activateBtn.style.display = 'none'; // Прячем кнопку
+                title.textContent = "Режим ожидания";
+                subtitle.textContent = "Можно свернуть браузер. Звук сработает.";
+                icon.textContent = "👂";
+                connStatus.textContent = "Подключено";
+                
+                // Включаем Wake Lock (чтобы экран не гас, если браузер открыт)
+                requestWakeLock();
+                
+            } catch (err) {
+                alert("Ошибка аудио! Разрешите автовоспроизведение в настройках.");
+            }
+        });
+
+        // 2. СЛУШАЕМ БАЗУ ДАННЫХ
+        onValue(statusRef, (snapshot) => {
+            const data = snapshot.val();
+            const isCalling = data ? data.is_calling : false;
+
+            if (isCalling) {
+                startAlarm();
+            } else {
+                stopAlarmLocal();
+            }
+        });
+
+        // 3. ФУНКЦИЯ ТРЕВОГИ
+        function startAlarm() {
+            if (!soundEnabled) return; // Если не активировали, молчим
+
+            body.classList.add('alert-mode');
+            icon.textContent = "🚨";
+            title.textContent = "ВАС ВЫЗЫВАЮТ!";
+            subtitle.textContent = "Клиент ждет в зале";
+            
+            stopBtn.style.display = 'block'; // Показываем кнопку сброса
+            activateBtn.style.display = 'none';
+
+            // Играем звук
+            alarm.play().catch(e => console.log("Браузер заблокировал звук:", e));
+
+            // МАГИЯ ДЛЯ ФОНОВОГО РЕЖИМА (Media Session API)
+            if ('mediaSession' in navigator) {
+                navigator.mediaSession.metadata = new MediaMetadata({
+                    title: '🔥 ТРЕВОГА! 🔥',
+                    artist: 'Клиент ждет',
+                    album: 'Нажми паузу чтобы принят',
+                    artwork: [
+                        { src: 'https://cdn-icons-png.flaticon.com/512/1086/1086581.png', sizes: '512x512', type: 'image/png' }
+                    ]
+                });
+                
+                // Если нажать паузу в шторке уведомлений — считаем, что кассир принял вызов
+                navigator.mediaSession.setActionHandler('pause', () => {
+                   confirmReset();
+                });
+            }
+        }
+
+        // 4. СБРОС ТРЕВОГИ
+        // Срабатывает при нажатии на кнопку на экране
+        stopBtn.addEventListener('click', confirmReset);
+
+        function confirmReset() {
+            // Отправляем в базу, что мы услышали (выключаем у всех)
+            set(statusRef, {
+                is_calling: false,
+                timestamp: Date.now()
+            });
+        }
+
+        function stopAlarmLocal() {
+            body.classList.remove('alert-mode');
+            alarm.pause();
+            alarm.currentTime = 0;
+            stopBtn.style.display = 'none';
+            
+            if (soundEnabled) {
+                title.textContent = "Режим ожидания";
+                subtitle.textContent = "Система готова к новому вызову";
+                icon.textContent = "👂";
+            }
+        }
+
+        // --- Wake Lock (Держит телефон активным, если страница открыта) ---
+        let wakeLock = null;
+        async function requestWakeLock() {
+            try {
+                if ('wakeLock' in navigator) {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                    console.log('Wake Lock active');
+                }
+            } catch (err) {
+                console.log(`${err.name}, ${err.message}`);
+            }
+        }
+    </script>
+</body>
+</html>
