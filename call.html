@@ -12,7 +12,7 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background: radial-gradient(circle, #8b0000 0%, #3a0000 100%); /* Глубокий красный */
+            background: radial-gradient(circle, #8b0000 0%, #3a0000 100%);
             font-family: 'Arial', sans-serif;
             overflow: hidden;
             color: white;
@@ -29,7 +29,7 @@
             text-shadow: 0 0 1px #000;
             user-select: none;
             z-index: 1;
-            pointer-events: none; /* Чтобы снег не мешал нажимать */
+            pointer-events: none;
             animation-name: fall;
             animation-timing-function: linear;
             animation-iteration-count: infinite;
@@ -49,11 +49,10 @@
             align-items: center;
         }
 
-        /* Веревочка */
         .string {
             width: 2px;
             height: 100px;
-            background: #ffd700; /* Золото */
+            background: #ffd700;
             position: absolute;
             top: -100px;
             left: 50%;
@@ -64,11 +63,11 @@
             width: 260px;
             height: 260px;
             border-radius: 50%;
-            border: 4px solid #ffd700; /* Золотая окантовка */
+            border: 4px solid #ffd700;
             background: radial-gradient(circle at 30% 30%, #ff4d4d, #b30000);
             box-shadow: 
-                0 0 20px rgba(255, 215, 0, 0.3), /* Золотое свечение */
-                inset -10px -10px 30px rgba(0,0,0,0.5); /* Объем */
+                0 0 20px rgba(255, 215, 0, 0.3),
+                inset -10px -10px 30px rgba(0,0,0,0.5);
             cursor: pointer;
             outline: none;
             display: flex;
@@ -80,7 +79,6 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* Блик на шарике */
         #callBtn::after {
             content: '';
             position: absolute;
@@ -109,9 +107,9 @@
 
         /* --- СОСТОЯНИЕ АКТИВНОГО ВЫЗОВА --- */
         #callBtn.calling {
-            background: radial-gradient(circle at 30% 30%, #4CAF50, #006400); /* Зеленый шар */
+            background: radial-gradient(circle at 30% 30%, #4CAF50, #006400);
             animation: ding-dong 1s infinite alternate;
-            box-shadow: 0 0 50px #ffd700; /* Сильное золотое свечение */
+            box-shadow: 0 0 50px #ffd700;
         }
 
         @keyframes ding-dong {
@@ -169,34 +167,33 @@
         
         let isCalling = false;
 
-        // 1. СЛУШАЕМ БАЗУ (Главная магия тут)
+        // 1. СЛУШАЕМ БАЗУ
         onValue(statusRef, (snapshot) => {
             const data = snapshot.val();
             isCalling = data ? data.is_calling : false;
             updateAnimation(isCalling);
         });
 
-        // 2. ОТПРАВЛЯЕМ ВЫЗОВ
+        // 2. ОТПРАВЛЯЕМ ВЫЗОВ + ЗАПРЕЩАЕМ ЭКРАНУ ГАСНУТЬ
         btn.addEventListener('click', () => {
-            // Если уже вызываем -> ничего не делаем или отменяем (по желанию).
-            // Здесь сделаем переключатель.
             const newState = !isCalling;
-            
             set(statusRef, {
                 is_calling: newState,
                 timestamp: Date.now()
             });
+            keepScreenOn(); // Активируем WakeLock при нажатии
         });
+
+        // Также пробуем включить "вечный экран" при любом касании страницы
+        document.addEventListener('click', keepScreenOn);
 
         function updateAnimation(active) {
             if (active) {
-                // == РЕЖИМ ОЖИДАНИЯ ==
                 btn.classList.add('calling');
                 btnTitle.textContent = "🎅 ОЖИДАЙТЕ";
                 btnSub.textContent = "сигнал отправлен...";
                 statusMsg.textContent = "Сотрудник мчится на оленях!";
             } else {
-                // == ОБЫЧНЫЙ РЕЖИМ ==
                 btn.classList.remove('calling');
                 btnTitle.textContent = "🎄 ВЫЗВАТЬ";
                 btnSub.textContent = "сотрудника";
@@ -204,28 +201,48 @@
             }
         }
 
-        // --- ГЕНЕРАТОР СНЕГА (Визуальный эффект) ---
+        // --- ГЕНЕРАТОР СНЕГА ---
         function createSnowflake() {
             const snowflake = document.createElement('div');
             snowflake.classList.add('snowflake');
             snowflake.textContent = '❄';
-            
-            // Случайная позиция и размер
             snowflake.style.left = Math.random() * 100 + 'vw';
-            snowflake.style.animationDuration = Math.random() * 3 + 2 + 's'; // от 2 до 5 сек
+            snowflake.style.animationDuration = Math.random() * 3 + 2 + 's';
             snowflake.style.opacity = Math.random();
             snowflake.style.fontSize = Math.random() * 20 + 10 + 'px';
-
             document.body.appendChild(snowflake);
-
-            // Удаляем снежинку, когда она упала
-            setTimeout(() => {
-                snowflake.remove();
-            }, 5000);
+            setTimeout(() => { snowflake.remove(); }, 5000);
         }
-
-        // Запускаем снег
         setInterval(createSnowflake, 200);
+
+        // --- ВЕЧНЫЙ ЭКРАН (Wake Lock API) ---
+        let wakeLock = null;
+
+        async function keepScreenOn() {
+            if (wakeLock !== null) return; // Уже включено
+
+            try {
+                if ('wakeLock' in navigator) {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                    console.log('Экран заблокирован от выключения (Wake Lock Active)');
+                    
+                    // Если свернули и развернули, запрашиваем снова
+                    wakeLock.addEventListener('release', () => {
+                        console.log('Wake Lock сброшен');
+                        wakeLock = null;
+                    });
+                }
+            } catch (err) {
+                console.error(`Ошибка Wake Lock: ${err.name}, ${err.message}`);
+            }
+        }
+        
+        // Восстанавливаем блокировку экрана, если вкладку свернули и вернулись
+        document.addEventListener('visibilitychange', async () => {
+            if (wakeLock === null && document.visibilityState === 'visible') {
+                await keepScreenOn();
+            }
+        });
 
     </script>
 </body>
