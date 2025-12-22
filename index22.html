@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ПОКУС | Комикс о ЗОЖ</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&family=Russo+One&display=swap" rel="stylesheet">
+    
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #FFD500; /* Желтый */
+            --accent: #E63946;  /* Красный */
+            --dark: #1D3557;    /* Синий */
+            --light: #F1FAEE;   /* Фон */
+            --shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--light);
+            font-family: 'Montserrat', sans-serif;
+            color: var(--dark);
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3 {
+            font-family: 'Russo One', sans-serif;
+            text-transform: uppercase;
+            line-height: 1.1;
+        }
+
+        p {
+            line-height: 1.6;
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 5%;
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            position: fixed;
+            width: 90%;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--accent);
+            letter-spacing: 2px;
+        }
+
+        .nav-btn {
+            background: var(--dark);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+
+        .nav-btn:hover {
+            background: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        /* Hero блок */
+        .hero {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            background: linear-gradient(135deg, #FFD500 0%, #FF9900 100%);
+            padding: 0 20px;
+            margin-bottom: 80px;
+            clip-path: polygon(0 0, 100% 0, 100% 90%, 0 100%);
+        }
+
+        .hero h1 {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 0px white;
+        }
+
+        .tagline {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 40px;
+            display: block;
+        }
+
+        /* История */
+        .story-section {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .episode {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 120px;
+            gap: 60px;
+        }
+
+        .episode:nth-child(even) {
+            flex-direction: row-reverse;
+        }
+
+        .text-block {
+            flex: 1;
+        }
+
+        .number {
+            font-family: 'Russo One', sans-serif;
+            font-size: 5rem;
+            color: rgba(29, 53, 87, 0.1);
+            position: absolute;
+            transform: translate(-20px, -40px);
+            z-index: -1;
+        }
+
+        .text-block h2 {
+            font-size: 2.5rem;
+            color: var(--accent);
+            margin-bottom: 20px;
+        }
+
+        .img-block {
+            flex: 1.2;
+            position: relative;
+        }
+
+        .img-block img {
+            width: 100%;
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            transition: transform 0.3s;
+            border: 5px solid white;
+        }
+
+        .img-block:hover img {
+            transform: scale(1.02) rotate(1deg);
+        }
+
+        /* Финал */
+        .final-cta {
+            background: var(--dark);
+            color: white;
+            text-align: center;
+            padding: 100px 20px;
+            border-radius: 30px 30px 0 0;
+        }
+
+        .btn-large {
+            display: inline-block;
+            background: var(--primary);
+            color: var(--dark);
+            font-size: 1.5rem;
+            font-weight: 800;
+            padding: 20px 50px;
+            border-radius: 10px;
+            text-decoration: none;
+            margin-top: 30px;
+            box-shadow: 0 10px 0 #ccaa00;
+            transition: 0.2s;
+        }
+
+        .btn-large:hover {
+            transform: translateY(5px);
+            box-shadow: 0 5px 0 #ccaa00;
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2.5rem; }
+            .episode, .episode:nth-child(even) {
+                flex-direction: column;
+                text-align: center;
+                gap: 30px;
+            }
+            .number { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="logo">POKUS.PROJECT</div>
+        <a href="#join" class="nav-btn">Вступить</a>
+    </nav>
+
+    <header class="hero">
+        <div class="hero-content" data-aos="zoom-in">
+            <h1>ЗОЖ — ЭТО ТВОЯ СУПЕРСИЛА</h1>
+            <span class="tagline">Комикс-блокбастер о победе над собой</span>
+        </div>
+    </header>
+
+    <div class="story-section">
+
+        <div class="episode">
+            <div class="text-block" data-aos="fade-right">
+                <span class="number">01</span>
+                <h2>УДАР ПО ПРИВЫЧКАМ</h2>
+                <p>Энерго-Мен вступает в бой! Хватит кормить себя отговорками. Первый шаг — это мощный удар по лени, коле и дивану. Скажи твердое "НЕТ" всему, что крадет твою энергию.</p>
+            </div>
+            <div class="img-block" data-aos="fade-left">
+                <img src="1.jpg" alt="Начало">
+            </div>
+        </div>
+
+        <div class="episode">
+            <div class="text-block" data-aos="fade-left">
+                <span class="number">02</span>
+                <h2>ВРЕМЯ ОЧИЩЕНИЯ</h2>
+                <p>Долой мусор! Освобождаем место для здоровья. Выброси вредную еду и сделай первую зарядку на свежем воздухе. Почувствуй, как свобода наполняет твои легкие. Вперед к новым вершинам!</p>
+            </div>
+            <div class="img-block" data-aos="fade-right">
+                <img src="2.jpg" alt="Очищение и зарядка">
+            </div>
+        </div>
+
+        <div class="episode">
+            <div class="text-block" data-aos="fade-right">
+                <span class="number">03</span>
+                <h2>СИЛА КОМАНДЫ</h2>
+                <p>Вместе мы сила! Энерго-Мен находит союзника. Готовка здоровой еды — это не рутина, а творчество. Делитесь рецептами, бегайте вместе и заряжайте друг друга мотивацией.</p>
+            </div>
+            <div class="img-block" data-aos="fade-left">
+                <img src="3.jpg" alt="Готовка">
+            </div>
+        </div>
+
+        <div class="episode">
+            <div class="text-block" data-aos="fade-left">
+                <span class="number">04</span>
+                <h2>УГРОЗА ФАСТФУДА</h2>
+                <p>Враг не дремлет. Гигантский Бургер пытается захватить город, навязывая лень и переедание. Но когда весь город выходит на зарядку, даже у такого монстра начинают трястись коленки!</p>
+            </div>
+            <div class="img-block" data-aos="fade-right">
+                <img src="4.jpg" alt="Угроза">
+            </div>
+        </div>
+
+        <div class="episode">
+            <div class="text-block" data-aos="fade-right">
+                <span class="number">05</span>
+                <h2>РЕШАЮЩАЯ БИТВА</h2>
+                <p>БАМ! ВЖУХ! Витаминная атака в действии. Энергия натуральных продуктов против трансжиров. Герои используют силу воли как главное оружие. Вредная пища не пройдет!</p>
+            </div>
+            <div class="img-block" data-aos="fade-left">
+                <img src="5.jpg" alt="Битва">
+            </div>
+        </div>
+
+        <div class="episode">
+            <div class="text-block" data-aos="fade-left">
+                <span class="number">06</span>
+                <h2>ПОБЕДА ЗДОРОВЬЯ</h2>
+                <p>Мы справились! Здоровье восторжествовало. Посмотри вокруг — счастливые, активные люди. Но помни: битва продолжается каждый день в твоей тарелке и в твоей голове. Будь героем!</p>
+            </div>
+            <div class="img-block" data-aos="zoom-in">
+                <img src="6.jpg" alt="Финал">
+            </div>
+        </div>
+
+    </div>
+
+    <footer class="final-cta" id="join">
+        <h2 data-aos="fade-up">СТАНЬ ЭНЕРГО-МЕНОМ!</h2>
+        <p data-aos="fade-up" data-aos-delay="100">Присоединяйся к проекту "ПОКУС" сегодня.</p>
+        <a href="#" class="btn-large" data-aos="flip-up" data-aos-delay="200">НАЧАТЬ ПУТЬ</a>
+        <br><br><br>
+        <small style="opacity: 0.5;">© 2025 Проект ПОКУС.</small>
+    </footer>
+
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init({ duration: 1000, once: true, offset: 120 });
+    </script>
+</body>
+</html>
