@@ -3,155 +3,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>School OS 8.0</title>
+    <title>School OS 8.0 (Gemini Edition)</title>
     <style>
-        :root {
-            --bg-dark: #000000;
-            --glass: rgba(28, 28, 30, 0.65);
-            --glass-solid: #1C1C1E;
-            --border: rgba(255, 255, 255, 0.12);
-            --primary: #0A84FF;
-            --primary-dim: rgba(10, 132, 255, 0.15);
-            --danger: #FF453A;
-            --success: #32D74B;
-            --text-main: #FFFFFF;
-            --text-sec: #8E8E93;
-            --safe-area-bottom: env(safe-area-inset-bottom);
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", Roboto, sans-serif;
-            background-color: var(--bg-dark);
-            color: var(--text-main);
-            margin: 0; height: 100vh; overflow: hidden;
-            display: flex; flex-direction: column;
-            transition: background-color 0.5s;
-        }
-
-        /* ЖИВОЙ ФОН */
+        /* СТИЛИ ОСТАЮТСЯ ПРЕЖНИМИ */
+        :root { --bg-dark: #000000; --glass: rgba(28, 28, 30, 0.65); --glass-solid: #1C1C1E; --border: rgba(255, 255, 255, 0.12); --primary: #0A84FF; --primary-dim: rgba(10, 132, 255, 0.15); --danger: #FF453A; --success: #32D74B; --text-main: #FFFFFF; --text-sec: #8E8E93; --safe-area-bottom: env(safe-area-inset-bottom); }
+        body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", Roboto, sans-serif; background-color: var(--bg-dark); color: var(--text-main); margin: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column; transition: background-color 0.5s; }
         .blobs { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; filter: blur(80px); opacity: 0.4; pointer-events: none; }
         .blob { position: absolute; border-radius: 50%; animation: float 14s infinite ease-in-out; transition: background 0.5s; }
         .blob-1 { top: -20%; left: -20%; width: 350px; height: 350px; background: var(--primary); }
         .blob-2 { bottom: -20%; right: -20%; width: 300px; height: 300px; background: var(--success); animation-delay: -5s; opacity: 0.6; }
         @keyframes float { 0%, 100% { transform: translate(0,0); } 50% { transform: translate(40px, -40px); } }
-
-        .app-container {
-            flex: 1; position: relative; overflow-y: auto; scroll-behavior: smooth;
-            padding-bottom: calc(90px + var(--safe-area-bottom));
-        }
+        .app-container { flex: 1; position: relative; overflow-y: auto; scroll-behavior: smooth; padding-bottom: calc(90px + var(--safe-area-bottom)); }
         .view-section { display: none; padding: 20px; animation: fadeIn 0.3s ease; }
         .view-section.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
-
-        /* КАРТОЧКА */
-        .hero-card {
-            background: linear-gradient(145deg, rgba(35,35,35,0.8), rgba(15,15,15,0.8));
-            border: 1px solid var(--border); border-radius: 32px; padding: 30px 20px;
-            text-align: center; margin-top: 15px; box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-            position: relative; overflow: hidden;
-        }
-        .hero-card::before {
-            content:''; position: absolute; top:0; left:0; right:0; height: 2px;
-            background: linear-gradient(90deg, transparent, var(--primary), transparent); opacity: 0.5;
-        }
-
+        .hero-card { background: linear-gradient(145deg, rgba(35,35,35,0.8), rgba(15,15,15,0.8)); border: 1px solid var(--border); border-radius: 32px; padding: 30px 20px; text-align: center; margin-top: 15px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); position: relative; overflow: hidden; }
+        .hero-card::before { content:''; position: absolute; top:0; left:0; right:0; height: 2px; background: linear-gradient(90deg, transparent, var(--primary), transparent); opacity: 0.5; }
         .timer-val { font-size: 72px; font-weight: 800; line-height: 1; margin: 15px 0; font-variant-numeric: tabular-nums; text-shadow: 0 0 30px rgba(0,0,0,0.5); }
         .progress-track { height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; }
         .progress-fill { height: 100%; width: 0%; background: var(--primary); transition: width 1s linear, background 0.3s; box-shadow: 0 0 15px var(--primary); }
-
-        /* СПИСКИ */
         .list-header { font-size: 28px; font-weight: 800; margin: 20px 0 15px 5px; }
-        .glass-item {
-            background: rgba(44, 44, 46, 0.4); backdrop-filter: blur(10px);
-            border-bottom: 1px solid var(--border); padding: 16px;
-            display: flex; justify-content: space-between; align-items: center;
-        }
+        .glass-item { background: rgba(44, 44, 46, 0.4); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); padding: 16px; display: flex; justify-content: space-between; align-items: center; }
         .glass-item:first-child { border-top-left-radius: 16px; border-top-right-radius: 16px; }
         .glass-item:last-child { border-bottom-left-radius: 16px; border-bottom-right-radius: 16px; border-bottom: none; }
         .active-day-row { background: var(--primary-dim); border-left: 3px solid var(--primary); }
         .lesson-icon { font-size: 24px; margin-right: 12px; display: inline-block; width: 30px; text-align: center; }
-
-        /* НАСТРОЙКИ */
         .settings-block { background: var(--glass-solid); border-radius: 16px; padding: 15px; margin-bottom: 20px; }
         .setting-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
         .setting-row:last-child { border-bottom: none; }
-        
         .switch { position: relative; display: inline-block; width: 50px; height: 30px; }
         .switch input { opacity: 0; width: 0; height: 0; }
         .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #333; transition: .4s; border-radius: 34px; }
         .slider:before { position: absolute; content: ""; height: 26px; width: 26px; left: 2px; bottom: 2px; background-color: white; transition: .4s; border-radius: 50%; }
         input:checked + .slider { background-color: var(--primary); }
         input:checked + .slider:before { transform: translateX(20px); }
-
         .theme-selector { display: flex; gap: 10px; margin-top: 10px; }
         .color-dot { width: 40px; height: 40px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: 0.2s; }
         .color-dot.active { border-color: white; transform: scale(1.1); }
-
         #loginScreen { text-align: center; padding-top: 40px; }
         .pin-input { background: rgba(255,255,255,0.1); border: 1px solid var(--border); color: white; font-size: 24px; padding: 15px; border-radius: 16px; width: 200px; text-align: center; letter-spacing: 5px; margin-bottom: 20px; outline: none; }
-        .pin-btn { background: var(--primary); color: white; border: none; padding: 15px; font-size: 16px; font-weight: 600; border-radius: 14px; width: 100%; margin-top: 10px; cursor: pointer; }
-
-        /* МОДАЛКА */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 200;
-            background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center;
-            opacity: 0; pointer-events: none; transition: 0.2s;
-        }
+        .pin-btn { background: var(--primary); color: white; border: none; padding: 15px; font-size: 16px; font-weight: 600; border-radius: 14px; width: 100%; margin-top: 10px; cursor: pointer; transition: 0.2s; }
+        .pin-btn:active { transform: scale(0.96); }
+        /* AI CHAT */
+        .chat-container { background: rgba(0,0,0,0.3); border-radius: 16px; height: 300px; overflow-y: auto; padding: 15px; margin-bottom: 15px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 10px; }
+        .chat-msg { max-width: 85%; padding: 10px 14px; border-radius: 14px; font-size: 14px; line-height: 1.4; position: relative; word-wrap: break-word; }
+        .msg-user { align-self: flex-end; background: var(--primary); color: white; border-bottom-right-radius: 2px; }
+        .msg-ai { align-self: flex-start; background: #3a3a3c; color: #e5e5e5; border-bottom-left-radius: 2px; }
+        .chat-input-area { display: flex; gap: 10px; }
+        .beta-badge { background: linear-gradient(90deg, #4285F4, #9B72CB); font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 800; margin-left: 8px; vertical-align: middle; text-shadow: none; color: white; }
+        .confirm-actions { margin-top: 10px; display: flex; gap: 10px; animation: fadeIn 0.3s; }
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 200; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: 0.2s; }
         .modal-overlay.open { opacity: 1; pointer-events: all; }
         .modal-card { background: #1C1C1E; width: 85%; max-width: 320px; padding: 25px; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); transform: scale(0.9); transition: 0.2s; }
         .modal-overlay.open .modal-card { transform: scale(1); }
         .modal-input { width: 100%; background: #2C2C2E; border: none; padding: 12px; border-radius: 10px; color: white; font-size: 16px; box-sizing: border-box; margin-bottom: 10px; }
-        
-        /* ПРИВЕТСТВЕННЫЙ ЭКРАН */
-        .welcome-card {
-            background: linear-gradient(135deg, #1c1c1e, #000);
-            text-align: center; border: 1px solid rgba(255,255,255,0.1);
-        }
-        .welcome-badge {
-            display: inline-block; background: linear-gradient(90deg, #FF2D55, #FF375F);
-            padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 800; text-transform: uppercase; margin-bottom: 15px;
-            box-shadow: 0 0 15px rgba(255, 55, 95, 0.4); animation: pulse 2s infinite;
-        }
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
-        
-        .tab-bar {
-            position: fixed; bottom: 0; width: 100%; height: calc(60px + var(--safe-area-bottom));
-            background: rgba(20, 20, 20, 0.9); backdrop-filter: blur(20px); border-top: 1px solid var(--border);
-            display: flex; justify-content: space-around; padding-bottom: var(--safe-area-bottom); z-index: 100;
-        }
+        .tab-bar { position: fixed; bottom: 0; width: 100%; height: calc(60px + var(--safe-area-bottom)); background: rgba(20, 20, 20, 0.9); backdrop-filter: blur(20px); border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding-bottom: var(--safe-area-bottom); z-index: 100; }
         .tab-btn { background: none; border: none; color: #666; font-size: 10px; width: 100%; cursor: pointer; }
         .tab-btn span { font-size: 24px; display: block; margin-bottom: 2px; }
         .tab-btn.active { color: var(--primary); }
-
-        .cloud-status {
-            position: fixed; top: 15px; right: 15px; width: 10px; height: 10px; border-radius: 50%;
-            background: #333; z-index: 999; box-shadow: 0 0 5px rgba(0,0,0,0.5);
-        }
+        .cloud-status { position: fixed; top: 15px; right: 15px; width: 10px; height: 10px; border-radius: 50%; background: #333; z-index: 999; box-shadow: 0 0 5px rgba(0,0,0,0.5); }
         .cloud-status.online { background: #32D74B; box-shadow: 0 0 10px #32D74B; }
     </style>
 </head>
 <body>
-
 <div class="blobs"><div class="blob blob-1"></div><div class="blob blob-2"></div></div>
 <div id="cloudIndicator" class="cloud-status" title="Статус синхронизации"></div>
 
-<div class="modal-overlay" id="welcomeModal">
-    <div class="modal-card welcome-card">
-        <div class="welcome-badge">Глобальное обновление</div>
-        <h2 style="font-size: 28px; margin: 0 0 10px 0;">School OS 8.0</h2>
-        <p style="color: var(--text-sec); font-size: 16px; line-height: 1.5; margin-bottom: 25px;">
-            Мы провели полный <b>рестайлинг</b> и <b>реконструкцию</b> сайта. 
-            <br><br>
-            Теперь он работает быстрее, стильнее и синхронизируется через облако ☁️.
-        </p>
-        <button class="pin-btn" onclick="closeWelcome()" style="background: white; color: black;">Круто, погнали! 🚀</button>
-    </div>
-</div>
-
 <div class="app-container">
-    
     <div id="view-timer" class="view-section active">
         <div style="display:flex; justify-content:space-between; padding:0 5px;">
             <div style="font-weight:700; color:var(--text-sec)" id="headerDate">...</div>
@@ -159,36 +77,30 @@
         </div>
         <div class="hero-card">
             <div style="display:inline-block; background:rgba(255,255,255,0.1); padding:5px 12px; border-radius:15px; font-size:12px; font-weight:700; margin-bottom:15px;" id="statusBadge">...</div>
-            
             <h2 style="margin:0; font-size:26px;">
                 <span id="mainIcon" style="margin-right:5px;"></span>
                 <span id="mainSubject">...</span>
             </h2>
             <div style="color:var(--text-sec); margin-bottom:10px;" id="roomSubject">...</div>
-            
             <div class="timer-val" id="countdown">--:--</div>
             <div class="progress-track"><div class="progress-fill" id="progressBar"></div></div>
-            
             <div style="margin-top:20px; font-size:14px; color:var(--text-sec); text-align:left;">
                 Далее: <span style="color:white; font-weight:600;" id="nextSubject">...</span>
             </div>
         </div>
     </div>
-
     <div id="view-schedule" class="view-section">
         <div class="list-header">Неделя</div>
         <div id="fullScheduleList"></div>
     </div>
-
     <div id="view-settings" class="view-section">
         <div id="loginScreen">
             <div style="font-size: 50px; margin-bottom: 20px;">☁️</div>
             <h3>Админка (Cloud)</h3>
-            <p style="color:var(--text-sec); margin-bottom:30px;">Пароль: можно узнать у разработчика (а вообще вас сюда не надо🙂))</p>
+            <p style="color:var(--text-sec); margin-bottom:30px;">Пароль: 202020</p>
             <input type="tel" id="pinInput" class="pin-input" placeholder="••••••" maxlength="6">
             <button class="pin-btn" onclick="checkPin()">Войти</button>
         </div>
-
         <div id="adminInterface" style="display:none;">
             <div class="list-header" style="margin-top:0;">Оформление</div>
             <div class="settings-block">
@@ -210,16 +122,27 @@
                     </div>
                 </div>
             </div>
-
-            <div class="list-header">Редактор (Sync)</div>
+            <div class="list-header" style="margin-top:30px;">
+                Gemini AI <span class="beta-badge">FREE</span>
+            </div>
+            <div class="chat-container" id="chatHistory">
+                <div class="chat-msg msg-ai">Привет! Я Gemini. Что поменяем в расписании? ✨</div>
+            </div>
+            <div id="aiControls">
+                <div class="chat-input-area">
+                    <input type="text" id="aiInput" class="modal-input" placeholder="Например: Убери первый урок в понедельник" style="margin-bottom:0;">
+                    <button class="pin-btn" onclick="sendToAI()" style="width: 60px; margin-top:0;">➤</button>
+                </div>
+            </div>
+            <div id="aiConfirmation" style="display:none;" class="confirm-actions">
+                <button class="pin-btn" onclick="approveAIChange()" style="background:var(--success); margin-top:0;">Одобрить</button>
+                <button class="pin-btn" onclick="rejectAIChange()" style="background:var(--danger); margin-top:0;">Отмена</button>
+            </div>
+            <div class="list-header" style="margin-top:40px;">Ручной редактор</div>
             <div style="display:flex; gap:10px; overflow-x:auto; padding-bottom:10px;" id="daySelector"></div>
             <div id="editorList" style="margin-bottom:20px;"></div>
-            
             <button class="pin-btn" onclick="addNewLesson()" style="background:rgba(255,255,255,0.1);">+ Добавить урок</button>
-            
-            <button class="pin-btn" onclick="resetToFactory()" style="background:rgba(255, 69, 58, 0.1); color: var(--danger); margin-top: 40px; border: 1px solid rgba(255, 69, 58, 0.3);">
-                ⚠ Сбросить всё до заводских настроек
-            </button>
+            <button class="pin-btn" onclick="resetToFactory()" style="background:rgba(255, 69, 58, 0.1); color: var(--danger); margin-top: 40px; border: 1px solid rgba(255, 69, 58, 0.3);">⚠ Сброс</button>
         </div>
     </div>
 </div>
@@ -269,7 +192,12 @@
     const db = getDatabase(app);
     const dbRef = ref(db, 'school_os_data_v1');
 
-    const defaultSchedule = {
+    // ==========================================
+    // 💎 КЛЮЧ GEMINI (ТВОЙ ЛИЧНЫЙ)
+    const GEMINI_KEY = "AIzaSyADzPExRmq9i3KkjiWD__O7t4TAYIKMXLQ"; 
+    // ==========================================
+
+   const defaultSchedule = {
     1: [ // Понедельник
         {i:"🇷🇺", n:"Разговоры о важном", s:"13:10", e:"13:30", r:"А-302"},
         {i:"🧪", n:"Химия", s:"13:35", e:"14:15", r:"Б-310"},
@@ -317,22 +245,138 @@
     ]
 };
 
-
     window.schedule = {};
     window.settings = { theme: '#0A84FF', showEmoji: true };
     window.selectedDay = 1;
     window.editingIndex = -1;
+    window.pendingSchedule = null;
 
-    function checkWelcome() {
-        const seen = localStorage.getItem('schoolOS_welcome_v8');
-        if (!seen) {
-            document.getElementById('welcomeModal').classList.add('open');
+    // --- ЛОГИКА GEMINI (НОВАЯ) ---
+
+    window.sendToAI = async function() {
+        const input = document.getElementById('aiInput');
+        const text = input.value.trim();
+        if(!text) return;
+        
+        addChatMsg(text, 'user');
+        input.value = ''; input.disabled = true;
+        const loadingId = addChatMsg('Gemini думает...', 'ai', true);
+
+        // ВАЖНО: Определяем время звонков для "умного" сдвига
+        const timeSlots = `
+        ЭТАЛОННЫЕ ЗВОНКИ (Вставляй это время при сдвигах):
+        1 урок: 13:10 - 13:30
+        2 урок: 13:35 - 14:15
+        3 урок: 14:20 - 15:00
+        4 урок: 15:05 - 15:45
+        5 урок: 16:00 - 16:40
+        `;
+
+        // Промпт для Gemini
+        const systemPrompt = `
+        Ты - умный диспетчер школьного расписания.
+        Текущее расписание JSON: ${JSON.stringify(window.schedule)}
+        
+        ${timeSlots}
+        
+        Твоя задача: Обновить JSON по запросу пользователя.
+        
+        СТРОГИЕ ПРАВИЛА:
+        1. Если пользователь просит "убрать/отменить" урок - удали его из массива.
+        2. ВАЖНО: После удаления сдвинь все нижние уроки ВВЕРХ, чтобы не было дыр.
+        3. ОЧЕНЬ ВАЖНО: При сдвиге ОБЯЗАТЕЛЬНО меняй время уроков (s/e) на время из "ЭТАЛОННЫХ ЗВОНКОВ" (1-й урок всегда в 13:10, 2-й в 13:35 и т.д.).
+        4. Если просят "поставить вместо X урок Y" - замени название, а время оставь прежним (или возьми из эталона).
+        
+        Верни ответ ТОЛЬКО В ФОРМАТЕ JSON (без 'json', без кавычек в начале):
+        {
+            "confirmation_text": "Текст подтверждения (кратко)",
+            "new_schedule": { ...полный обновленный объект расписания... },
+            "action_taken": true
+        }
+        `;
+
+        const finalPrompt = systemPrompt + "\n\nЗАПРОС ПОЛЬЗОВАТЕЛЯ: " + text;
+
+        try {
+            // URL модели Gemini 1.5 Flash
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`;
+
+            const response = await fetch(url, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    contents: [{
+                        parts: [{ text: finalPrompt }]
+                    }]
+                })
+            });
+
+            if(!response.ok) throw new Error("Ошибка Gemini: " + response.status);
+
+            const data = await response.json();
+            
+            // Получаем текст от нейросети
+            let content = data.candidates[0].content.parts[0].text;
+            
+            // Чистим ответ от markdown (Gemini любит писать ```json ... ```)
+            content = content.replace(/```json/g, '').replace(/```/g, '').trim();
+
+            let result;
+            try {
+                result = JSON.parse(content);
+            } catch(e) {
+                console.warn("Gemini вернул нечистый JSON:", content);
+                result = { confirmation_text: "Не понял ответ нейросети. Попробуй проще.", action_taken: false };
+            }
+
+            document.getElementById(loadingId).remove();
+            addChatMsg(result.confirmation_text, 'ai');
+
+            if(result.action_taken && result.new_schedule) {
+                window.pendingSchedule = result.new_schedule;
+                document.getElementById('aiControls').style.display = 'none';
+                document.getElementById('aiConfirmation').style.display = 'flex';
+            } else {
+                input.disabled = false; input.focus();
+            }
+
+        } catch (e) {
+            console.error(e);
+            document.getElementById(loadingId).innerText = "Ошибка соединения.";
+            addChatMsg("Проверьте интернет.", 'ai');
+            input.disabled = false;
         }
     }
-    
-    window.closeWelcome = function() {
-        document.getElementById('welcomeModal').classList.remove('open');
-        localStorage.setItem('schoolOS_welcome_v8', 'true');
+
+    // --- ОБЫЧНЫЕ ФУНКЦИИ ---
+    window.approveAIChange = function() {
+        if(window.pendingSchedule) {
+            window.schedule = window.pendingSchedule;
+            pushToCloud();
+            renderScheduleList(); renderAdminList();
+            addChatMsg("✅ Успешно сохранено!", 'ai');
+            resetAIState();
+        }
+    }
+    window.rejectAIChange = function() {
+        addChatMsg("❌ Изменения отменены.", 'ai');
+        resetAIState();
+    }
+    function resetAIState() {
+        window.pendingSchedule = null;
+        document.getElementById('aiControls').style.display = 'block';
+        document.getElementById('aiConfirmation').style.display = 'none';
+        const input = document.getElementById('aiInput');
+        input.disabled = false; input.focus();
+    }
+    function addChatMsg(text, type, isId = false) {
+        const div = document.createElement('div');
+        div.className = `chat-msg msg-${type}`;
+        div.innerText = text;
+        if(isId) { div.id = 'temp_load'; }
+        const c = document.getElementById('chatHistory');
+        c.appendChild(div); c.scrollTop = c.scrollHeight;
+        return isId ? 'temp_load' : null;
     }
 
     onValue(dbRef, (snapshot) => {
@@ -350,55 +394,35 @@
         renderScheduleList();
         if(document.getElementById('adminInterface').style.display === 'block') renderAdminList();
     });
-
-    window.pushToCloud = function() {
-        set(dbRef, { schedule: window.schedule, settings: window.settings });
-    }
-
-    // --- ФУНКЦИЯ СБРОСА ---
+    window.pushToCloud = function() { set(dbRef, { schedule: window.schedule, settings: window.settings }); }
     window.resetToFactory = function() {
-        if(confirm("⚠ Вы уверены? Все изменения будут стерты, расписание вернется к исходному состоянию.")) {
+        if(confirm("Сбросить всё?")) {
             window.schedule = JSON.parse(JSON.stringify(defaultSchedule));
             window.settings = { theme: '#0A84FF', showEmoji: true };
-            pushToCloud();
-            applyTheme(window.settings.theme);
-            renderAdminList();
-            renderScheduleList();
-            alert("Данные успешно сброшены!");
+            pushToCloud(); applyTheme(window.settings.theme);
+            renderAdminList(); renderScheduleList();
         }
     }
-
     window.setTheme = function(color, el) {
-        window.settings.theme = color;
-        applyTheme(color);
-        pushToCloud();
+        window.settings.theme = color; applyTheme(color); pushToCloud();
         document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
         if(el) el.classList.add('active');
     }
-
     function applyTheme(color) {
         const root = document.documentElement;
         root.style.setProperty('--primary', color);
         root.style.setProperty('--primary-dim', color + '26');
     }
-
-    window.toggleEmojis = function(val) {
-        window.settings.showEmoji = val;
-        pushToCloud();
-    }
-
+    window.toggleEmojis = function(val) { window.settings.showEmoji = val; pushToCloud(); }
     function getMin(t) { const [h,m] = t.split(':').map(Number); return h*60+m; }
-
     window.updateTimer = function() {
         const now = new Date();
         const d = now.getDay();
         const curMin = now.getHours()*60 + now.getMinutes();
         document.getElementById('headerTime').innerText = now.toLocaleTimeString().slice(0,5);
         document.getElementById('headerDate').innerText = now.toLocaleDateString('ru-RU', {weekday:'short', day:'numeric'}).toUpperCase();
-
         const today = window.schedule[d];
-        if(!today) { setCard('chill', '😴', 'ВЫХОДНОЙ', 'Отдыхай!', 0, 100, 'Завтра'); return; }
-
+        if(!today || today.length === 0) { setCard('chill', '😴', 'ВЫХОДНОЙ', 'Отдыхай!', 0, 100, 'Завтра'); return; }
         let active = false;
         for(let i=0; i<today.length; i++) {
             const l = today[i];
@@ -423,24 +447,19 @@
             else setCard('chill', '🏠', 'ВСЕ УРОКИ', 'Домой!', 0, 100, 'Завтра');
         }
     }
-
     function setCard(mode, icon, title, sub, sec, pct, next) {
         const badge = document.getElementById('statusBadge');
         const bar = document.getElementById('progressBar');
         const iconEl = document.getElementById('mainIcon');
-        
         let showIcon = window.settings.showEmoji;
         if(mode !== 'lesson') showIcon = true; 
         iconEl.innerText = showIcon ? (icon || '📚') : '';
-        
         if(mode==='lesson') { badge.style.background = 'var(--primary)'; badge.innerText = 'ИДЕТ УРОК'; bar.style.background = 'var(--primary)'; }
         else if(mode==='break') { badge.style.background = 'var(--success)'; badge.innerText = 'ПЕРЕМЕНА'; bar.style.background = 'var(--success)'; }
         else { badge.style.background = 'var(--text-sec)'; badge.innerText = mode==='wait'?'СКОРО':'ОТДЫХ'; bar.style.background = '#555'; }
-
         document.getElementById('mainSubject').innerText = title;
         document.getElementById('roomSubject').innerText = sub;
         document.getElementById('nextSubject').innerText = next;
-        
         if(sec > 0) {
             const m = Math.floor(sec/60); const s = Math.floor(sec%60);
             document.getElementById('countdown').innerText = `${m}:${s<10?'0':''}${s}`;
@@ -450,7 +469,6 @@
             bar.style.width = pct + '%';
         }
     }
-
     window.renderScheduleList = function() {
         const container = document.getElementById('fullScheduleList');
         if(!container) return;
@@ -466,7 +484,6 @@
             });
         }
     }
-
     window.checkPin = function() {
         if(document.getElementById('pinInput').value === "202020") {
             document.getElementById('loginScreen').style.display = 'none';
@@ -474,7 +491,6 @@
             window.initAdmin();
         } else { alert("Неверный пароль!"); }
     }
-
     window.initAdmin = function() {
         const selector = document.getElementById('daySelector');
         selector.innerHTML = '';
@@ -491,7 +507,6 @@
         });
         window.renderAdminList();
     }
-
     window.renderAdminList = function() {
         const list = document.getElementById('editorList');
         list.innerHTML = '';
@@ -499,7 +514,6 @@
             list.innerHTML += `<div class="glass-item" onclick="openEdit(${idx})"><div style="display:flex; align-items:center;"><span style="margin-right:10px; font-size:20px;">${l.i||'📚'}</span><b>${l.n}</b></div><span>✎</span></div>`;
         });
     }
-
     window.openEdit = function(idx) {
         window.editingIndex = idx;
         const l = window.schedule[window.selectedDay][idx];
@@ -510,7 +524,6 @@
         document.getElementById('editEnd').value = l.e;
         document.getElementById('editModal').classList.add('open');
     }
-
     window.addNewLesson = function() {
         window.editingIndex = -1;
         document.getElementById('editIcon').value = "📚"; 
@@ -520,7 +533,6 @@
         document.getElementById('editEnd').value = "";
         document.getElementById('editModal').classList.add('open');
     }
-
     window.saveLesson = function() {
         const newL = { i: document.getElementById('editIcon').value, n: document.getElementById('editName').value, r: document.getElementById('editRoom').value, s: document.getElementById('editStart').value, e: document.getElementById('editEnd').value };
         if(!newL.n) return;
@@ -531,24 +543,18 @@
         } else { window.schedule[window.selectedDay][window.editingIndex] = newL; }
         pushToCloud(); window.closeModal();
     }
-
     window.deleteLesson = function() {
         if(window.editingIndex > -1) { window.schedule[window.selectedDay].splice(window.editingIndex, 1); pushToCloud(); window.closeModal(); }
     }
-
     window.closeModal = function() { document.getElementById('editModal').classList.remove('open'); }
-    
     window.switchTab = function(id, btn) {
         document.querySelectorAll('.view-section').forEach(e=>e.classList.remove('active'));
         document.getElementById(id).classList.add('active');
         document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
         btn.classList.add('active');
     }
-
     setInterval(window.updateTimer, 1000);
     window.updateTimer();
-    setTimeout(checkWelcome, 500);
-
 </script>
 </body>
 </html>
