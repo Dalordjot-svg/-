@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>School OS (8B Edition)</title>
@@ -192,6 +193,14 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    // --- TELEGRAM INIT ---
+    const tg = window.Telegram.WebApp;
+    tg.expand(); // Развернуть на весь экран
+    tg.ready();  // Сказать Телеграму, что приложение загрузилось
+    
+    // Можно покрасить шапку Телеграма в цвет твоего фона
+    tg.setHeaderColor('#000000'); 
+    tg.setBackgroundColor('#000000');
 
     const firebaseConfig = {
         apiKey: "AIzaSyBa3MKrLHcRPauIyzxgxfNpLUphmehJAkg",
