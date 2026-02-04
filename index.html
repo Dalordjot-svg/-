@@ -6,41 +6,92 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>School OS (8B Edition)</title>
     <style>
-        /* СТИЛИ */
-        :root { --bg-dark: #000000; --glass: rgba(28, 28, 30, 0.65); --glass-solid: #1C1C1E; --border: rgba(255, 255, 255, 0.12); --primary: #FFD60A; --primary-dim: rgba(255, 214, 10, 0.15); --danger: #FF453A; --success: #32D74B; --text-main: #FFFFFF; --text-sec: #8E8E93; --safe-area-bottom: env(safe-area-inset-bottom); }
-        body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", Roboto, sans-serif; background-color: var(--bg-dark); color: var(--text-main); margin: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column; transition: background-color 0.5s; }
+        /* --- СТИЛИ (CSS) --- */
+        :root { 
+            --bg-dark: #000000; 
+            --glass: rgba(28, 28, 30, 0.65); 
+            --glass-solid: #1C1C1E; 
+            --border: rgba(255, 255, 255, 0.12); 
+            --primary: #FFD60A; 
+            --primary-dim: rgba(255, 214, 10, 0.15); 
+            --danger: #FF453A; 
+            --success: #32D74B; 
+            --text-main: #FFFFFF; 
+            --text-sec: #8E8E93; 
+            --safe-area-bottom: env(safe-area-inset-bottom); 
+        }
+
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", Roboto, sans-serif; 
+            background-color: var(--bg-dark); 
+            color: var(--text-main); 
+            margin: 0; 
+            height: 100vh; 
+            overflow: hidden; 
+            display: flex; 
+            flex-direction: column; 
+            transition: background-color 0.5s; 
+        }
+
+        /* Анимация фона */
         .blobs { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; filter: blur(80px); opacity: 0.4; pointer-events: none; }
         .blob { position: absolute; border-radius: 50%; animation: float 14s infinite ease-in-out; transition: background 0.5s; }
         .blob-1 { top: -20%; left: -20%; width: 350px; height: 350px; background: var(--primary); }
         .blob-2 { bottom: -20%; right: -20%; width: 300px; height: 300px; background: var(--success); animation-delay: -5s; opacity: 0.6; }
         @keyframes float { 0%, 100% { transform: translate(0,0); } 50% { transform: translate(40px, -40px); } }
+
         .app-container { flex: 1; position: relative; overflow-y: auto; scroll-behavior: smooth; padding-bottom: calc(90px + var(--safe-area-bottom)); }
+        
+        /* Секции */
         .view-section { display: none; padding: 20px; animation: fadeIn 0.3s ease; }
         .view-section.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
-        .hero-card { background: linear-gradient(145deg, rgba(35,35,35,0.8), rgba(15,15,15,0.8)); border: 1px solid var(--border); border-radius: 32px; padding: 30px 20px; text-align: center; margin-top: 15px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); position: relative; overflow: hidden; }
+
+        /* Карточка Таймера */
+        .hero-card { 
+            background: linear-gradient(145deg, rgba(35,35,35,0.8), rgba(15,15,15,0.8)); 
+            border: 1px solid var(--border); 
+            border-radius: 32px; 
+            padding: 30px 20px; 
+            text-align: center; 
+            margin-top: 15px; 
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5); 
+            position: relative; 
+            overflow: hidden; 
+        }
         .hero-card::before { content:''; position: absolute; top:0; left:0; right:0; height: 2px; background: linear-gradient(90deg, transparent, var(--primary), transparent); opacity: 0.5; }
+        
         .timer-val { font-size: 72px; font-weight: 800; line-height: 1; margin: 15px 0; font-variant-numeric: tabular-nums; text-shadow: 0 0 30px rgba(0,0,0,0.5); }
         .progress-track { height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; }
         .progress-fill { height: 100%; width: 0%; background: var(--primary); transition: width 1s linear, background 0.3s; box-shadow: 0 0 15px var(--primary); }
+
+        /* Списки */
         .list-header { font-size: 28px; font-weight: 800; margin: 20px 0 15px 5px; }
-        .glass-item { background: rgba(44, 44, 46, 0.4); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); padding: 16px; display: flex; justify-content: space-between; align-items: center; }
+        .glass-item { background: rgba(44, 44, 46, 0.4); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); padding: 16px; display: flex; flex-direction: column; }
         .glass-item:first-child { border-top-left-radius: 16px; border-top-right-radius: 16px; }
         .glass-item:last-child { border-bottom-left-radius: 16px; border-bottom-right-radius: 16px; border-bottom: none; }
         .active-day-row { background: var(--primary-dim); border-left: 3px solid var(--primary); }
         .lesson-icon { font-size: 24px; margin-right: 12px; display: inline-block; width: 30px; text-align: center; }
+
+        /* Настройки */
         .settings-block { background: var(--glass-solid); border-radius: 16px; padding: 15px; margin-bottom: 20px; }
         .setting-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
         .setting-row:last-child { border-bottom: none; }
+
+        /* Переключатель */
         .switch { position: relative; display: inline-block; width: 50px; height: 30px; }
         .switch input { opacity: 0; width: 0; height: 0; }
         .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #333; transition: .4s; border-radius: 34px; }
         .slider:before { position: absolute; content: ""; height: 26px; width: 26px; left: 2px; bottom: 2px; background-color: white; transition: .4s; border-radius: 50%; }
         input:checked + .slider { background-color: var(--primary); }
         input:checked + .slider:before { transform: translateX(20px); }
+
+        /* Темы */
         .theme-selector { display: flex; gap: 10px; margin-top: 10px; }
         .color-dot { width: 40px; height: 40px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: 0.2s; }
         .color-dot.active { border-color: white; transform: scale(1.1); }
+
+        /* Логин */
         #loginScreen { text-align: center; padding-top: 40px; }
         .pin-input { background: rgba(255,255,255,0.1); border: 1px solid var(--border); color: white; font-size: 24px; padding: 15px; border-radius: 16px; width: 200px; text-align: center; letter-spacing: 5px; margin-bottom: 20px; outline: none; }
         .pin-btn { background: var(--primary); color: black; border: none; padding: 15px; font-size: 16px; font-weight: 600; border-radius: 14px; width: 100%; margin-top: 10px; cursor: pointer; transition: 0.2s; }
@@ -50,18 +101,53 @@
         .prompt-box { background: #222; color: #0f0; font-family: monospace; padding: 10px; border-radius: 10px; width: 100%; height: 100px; border: 1px solid #444; margin-bottom: 10px; font-size: 12px; resize: none; }
         .step-label { font-size: 14px; color: var(--text-sec); margin-bottom: 5px; display: block; font-weight: bold; }
         
+        /* Модальные окна */
         .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 200; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: 0.2s; }
         .modal-overlay.open { opacity: 1; pointer-events: all; }
         .modal-card { background: #1C1C1E; width: 85%; max-width: 350px; padding: 25px; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); transform: scale(0.9); transition: 0.2s; max-height: 85vh; overflow-y: auto; }
         .modal-overlay.open .modal-card { transform: scale(1); }
         .modal-input { width: 100%; background: #2C2C2E; border: none; padding: 12px; border-radius: 10px; color: white; font-size: 16px; box-sizing: border-box; margin-bottom: 10px; }
 
+        /* Нижнее меню */
         .tab-bar { position: fixed; bottom: 0; width: 100%; height: calc(60px + var(--safe-area-bottom)); background: rgba(20, 20, 20, 0.9); backdrop-filter: blur(20px); border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding-bottom: var(--safe-area-bottom); z-index: 100; }
         .tab-btn { background: none; border: none; color: #666; font-size: 10px; width: 100%; cursor: pointer; }
         .tab-btn span { font-size: 24px; display: block; margin-bottom: 2px; }
         .tab-btn.active { color: var(--primary); }
         .cloud-status { position: fixed; top: 15px; right: 15px; width: 10px; height: 10px; border-radius: 50%; background: #333; z-index: 999; box-shadow: 0 0 5px rgba(0,0,0,0.5); }
         .cloud-status.online { background: #32D74B; box-shadow: 0 0 10px #32D74B; }
+        
+        /* Стиль для ДЗ */
+        .homework-badge { margin-top: 10px; background: rgba(255, 214, 10, 0.15); padding: 8px 10px; border-radius: 8px; font-size: 13px; color: var(--primary); display: flex; align-items: flex-start; line-height: 1.4; }
+        .homework-badge span:first-child { margin-right: 8px; }
+
+        /* BETA Блок ДЗ */
+        .beta-hw-block {
+            background: linear-gradient(135deg, rgba(255, 214, 10, 0.1), rgba(255, 214, 10, 0.02));
+            border: 1px solid rgba(255, 214, 10, 0.2);
+            border-radius: 20px;
+            padding: 15px;
+            margin: 0 5px 20px 5px;
+            position: relative;
+        }
+        .beta-tag {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--primary);
+            color: black;
+            font-size: 10px;
+            font-weight: 800;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+        .hw-summary-item {
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            padding: 10px;
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+        }
     </style>
 </head>
 <body>
@@ -69,6 +155,7 @@
 <div id="cloudIndicator" class="cloud-status" title="Статус синхронизации"></div>
 
 <div class="app-container">
+    
     <div id="view-timer" class="view-section active">
         <div style="display:flex; justify-content:space-between; padding:0 5px;">
             <div style="font-weight:700; color:var(--text-sec)" id="headerDate">...</div>
@@ -88,10 +175,23 @@
             </div>
         </div>
     </div>
+    
     <div id="view-schedule" class="view-section">
-        <div class="list-header">Неделя</div>
+        <div class="beta-hw-block">
+            <div class="beta-tag">BETA</div>
+            <div style="font-size: 18px; font-weight: 800; margin-bottom: 5px;">📝 Домашние задания</div>
+            <div style="font-size: 12px; color: var(--text-sec); margin-bottom: 10px;">
+                Автоматическая синхронизация или ручной ввод.
+            </div>
+            <div id="homeworkSummaryList">
+                <div style="text-align: center; color: #555; padding: 10px;">Загрузка...</div>
+            </div>
+        </div>
+
+        <div class="list-header">Расписание</div>
         <div id="fullScheduleList"></div>
     </div>
+    
     <div id="view-settings" class="view-section">
         <div id="loginScreen">
             <div style="font-size: 50px; margin-bottom: 20px;">🤖</div>
@@ -102,12 +202,38 @@
             <input type="tel" id="pinInput" class="pin-input" placeholder="••••••" maxlength="6">
             <button class="pin-btn" onclick="checkPin()">Войти</button>
         </div>
+        
         <div id="adminInterface" style="display:none;">
             <div class="beta-warning">
                 ⚠ BETA: Возможны ошибки. Проверяйте результат.
             </div>
+            
+            <button class="pin-btn" onclick="window.location.href='database.html'" style="background: linear-gradient(90deg, #BF5AF2, #0A84FF); color: white; margin-bottom: 30px; box-shadow: 0 10px 20px rgba(0,0,0,0.3);">
+                📂 Управление Данными (Спецдоступ)
+            </button>
+            <div class="list-header" style="margin-top:0;">⚡ Быстрое добавление ДЗ</div>
+            <div class="settings-block">
+                <div style="margin-bottom:10px;">
+                    <label class="step-label">1. Выбери предмет</label>
+                    <select id="hwSubjectSelect" class="modal-input" onchange="findNextLessonDate()" style="background:#2C2C2E; color:white;">
+                        <option value="">Загрузка...</option>
+                    </select>
+                </div>
+                
+                <div style="margin-bottom:10px;">
+                    <label class="step-label">2. Дата (Следующий урок)</label>
+                    <div id="hwTargetLabel" style="background: rgba(255, 214, 10, 0.1); color: var(--primary); padding:10px; border-radius:10px; font-weight:bold;">
+                        Сначала выбери предмет
+                    </div>
+                </div>
 
-            <div class="list-header" style="margin-top:0;">Оформление</div>
+                <label class="step-label">3. Задание</label>
+                <textarea id="hwTextQuick" class="prompt-box" style="background:#2C2C2E; color:white; height:60px;" placeholder="Читать стр. 42..."></textarea>
+                
+                <button class="pin-btn" onclick="saveQuickHW()">Сохранить ДЗ</button>
+            </div>
+
+            <div class="list-header" style="margin-top:30px;">Оформление</div>
             <div class="settings-block">
                 <div class="setting-row">
                     <span>Показывать Эмодзи</span>
@@ -131,7 +257,7 @@
             <div class="list-header" style="margin-top:30px;">ИИ Ассистент (Ручной)</div>
             <div class="settings-block">
                 <div style="font-size: 13px; color: #aaa; margin-bottom: 10px;">
-                    Напиши, что сделать, и скопируй промпт в любой ИИ (ChatGPT, DeepSeek).
+                    Напиши, что сделать, и скопируй промпт в любой ИИ.
                 </div>
                 <input type="text" id="aiRequest" class="modal-input" placeholder="Например: Убери химию в понедельник">
                 <button class="pin-btn" onclick="openAiModal()">⚡ Сгенерировать Промпт</button>
@@ -149,14 +275,9 @@
 <div class="modal-overlay" id="aiModal">
     <div class="modal-card">
         <h3>🤖 Работа с ИИ</h3>
-        
-        <span class="step-label">ШАГ 1: Скопируй этот текст</span>
         <textarea id="promptOutput" class="prompt-box" readonly></textarea>
         <button class="pin-btn" onclick="copyPrompt()" style="background: #333; color:white; margin-bottom: 20px;">📋 Копировать</button>
-
-        <span class="step-label">ШАГ 2: Вставь ответ ИИ (код) сюда</span>
         <textarea id="jsonInput" class="prompt-box" style="background: #2C2C2E; color: white; border: 1px solid #555;" placeholder='Вставь ответ ИИ...'></textarea>
-        
         <div style="display:flex; gap:10px; margin-top:10px;">
             <button class="pin-btn" onclick="applyAiResult()" style="background: var(--success); color:black;">Применить</button>
             <button class="pin-btn" onclick="closeAiModal()" style="background:rgba(255,255,255,0.1); color:white;">Отмена</button>
@@ -176,6 +297,12 @@
             <div style="flex:1;"><label style="font-size:12px; color:#888;">Начало</label><input type="time" id="editStart" class="modal-input"></div>
             <div style="flex:1;"><label style="font-size:12px; color:#888;">Конец</label><input type="time" id="editEnd" class="modal-input"></div>
         </div>
+        
+        <div style="margin-top:10px;">
+            <label style="font-size:12px; color:#888;">Домашнее задание</label>
+            <textarea id="editHomework" class="modal-input" style="height:60px;" placeholder="Пусто"></textarea>
+        </div>
+
         <div style="display:flex; gap:10px; margin-top:15px;">
             <button class="pin-btn" style="background:rgba(255,69,58,0.2); color:#FF453A;" onclick="deleteLesson()">Удалить</button>
             <button class="pin-btn" style="background:rgba(255,255,255,0.1); color:white;" onclick="closeModal()">Отмена</button>
@@ -193,15 +320,15 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    
     // --- TELEGRAM INIT ---
     const tg = window.Telegram.WebApp;
-    tg.expand(); // Развернуть на весь экран
-    tg.ready();  // Сказать Телеграму, что приложение загрузилось
-    
-    // Можно покрасить шапку Телеграма в цвет твоего фона
+    tg.expand(); 
+    tg.ready();  
     tg.setHeaderColor('#000000'); 
     tg.setBackgroundColor('#000000');
 
+    // ТВОИ КЛЮЧИ
     const firebaseConfig = {
         apiKey: "AIzaSyBa3MKrLHcRPauIyzxgxfNpLUphmehJAkg",
         authDomain: "moon-logistik.firebaseapp.com",
@@ -217,62 +344,19 @@
     const db = getDatabase(app);
     const dbRef = ref(db, 'school_os_data_v1');
 
-    // РАСПИСАНИЕ 8В КЛАСС (По фото)
     const defaultSchedule = {
-        1: [ // Понедельник
-            {i:"🇷🇺", n:"Разговоры о важном", s:"13:10", e:"13:30", r:"?"},
-            {i:"🧪", n:"Химия", s:"13:35", e:"14:15", r:"?"},
-            {i:"🧬", n:"Биология", s:"14:20", e:"15:00", r:"?"},
-            {i:"🇷🇺", n:"Русский язык", s:"15:05", e:"15:45", r:"?"},
-            {i:"📐", n:"Алгебра", s:"16:00", e:"16:40", r:"?"},
-            {i:"📐", n:"Алгебра", s:"16:50", e:"17:30", r:"?"},
-            {i:"🎵", n:"Музыка", s:"17:40", e:"18:20", r:"?"}
-        ],
-        2: [ // Вторник
-            {i:"🎲", n:"Вероятность и стат.", s:"13:35", e:"14:15", r:"?"},
-            {i:"⚽", n:"Физкультура", s:"14:20", e:"15:00", r:"Спортзал"},
-            {i:"📚", n:"Литература", s:"15:05", e:"15:45", r:"?"},
-            {i:"⚡", n:"Физика", s:"16:00", e:"16:40", r:"?"},
-            {i:"✏️", n:"Черчение", s:"16:50", e:"17:30", r:"?"},
-            {i:"🇬🇧", n:"Английский язык", s:"17:40", e:"18:20", r:"?"},
-            {i:"📜", n:"История", s:"18:25", e:"19:05", r:"?"}
-        ],
-        3: [ // Среда
-            {i:"🇬🇧", n:"Английский язык", s:"13:35", e:"14:15", r:"?"},
-            {i:"🇷🇺", n:"Русский язык", s:"14:20", e:"15:00", r:"?"},
-            {i:"🧪", n:"Химия", s:"15:05", e:"15:45", r:"?"},
-            {i:"📐", n:"Геометрия", s:"16:00", e:"16:40", r:"?"},
-            {i:"🌍", n:"География", s:"16:50", e:"17:30", r:"?"},
-            {i:"🇷🇺", n:"Русский язык", s:"17:40", e:"18:20", r:"?"},
-            {i:"🔨", n:"Технология", s:"18:25", e:"19:05", r:"?"}
-        ],
-        4: [ // Четверг
-            {i:"🔢", n:"РМГ", s:"13:35", e:"14:15", r:"?"},
-            {i:"⚡", n:"Физика", s:"14:20", e:"15:00", r:"?"},
-            {i:"📚", n:"Литература", s:"15:05", e:"15:45", r:"?"},
-            {i:"📜", n:"История", s:"16:00", e:"16:40", r:"?"},
-            {i:"📐", n:"Геометрия", s:"16:50", e:"17:30", r:"?"},
-            {i:"💻", n:"Информатика", s:"17:40", e:"18:20", r:"?"},
-            {i:"⚽", n:"Физкультура", s:"18:25", e:"19:05", r:"Спортзал"}
-        ],
-        5: [ // Пятница
-            {i:"🇬🇧", n:"Английский язык", s:"13:35", e:"14:15", r:"?"},
-            {i:"📐", n:"Алгебра", s:"14:20", e:"15:00", r:"?"},
-            {i:"🌍", n:"География", s:"15:05", e:"15:45", r:"?"},
-            {i:"🌍", n:"География Т", s:"16:00", e:"16:40", r:"?"},
-            {i:"🧬", n:"Биология", s:"16:50", e:"17:30", r:"?"},
-            {i:"🛡️", n:"ОБЗР", s:"17:40", e:"18:20", r:"?"},
-            {i:"⚖️", n:"Обществознание", s:"18:25", e:"19:05", r:"?"}
-        ]
+        1: [{i:"🇷🇺", n:"Разговоры о важном", s:"13:10", e:"13:30", r:"?"}, {i:"🧪", n:"Химия", s:"13:35", e:"14:15", r:"?"}, {i:"🧬", n:"Биология", s:"14:20", e:"15:00", r:"?"}, {i:"🇷🇺", n:"Русский язык", s:"15:05", e:"15:45", r:"?"}, {i:"📐", n:"Алгебра", s:"16:00", e:"16:40", r:"?"}, {i:"📐", n:"Алгебра", s:"16:50", e:"17:30", r:"?"}, {i:"🎵", n:"Музыка", s:"17:40", e:"18:20", r:"?"}],
+        2: [{i:"🎲", n:"Вероятность и стат.", s:"13:35", e:"14:15", r:"?"}, {i:"⚽", n:"Физкультура", s:"14:20", e:"15:00", r:"Спортзал"}, {i:"📚", n:"Литература", s:"15:05", e:"15:45", r:"?"}, {i:"⚡", n:"Физика", s:"16:00", e:"16:40", r:"?"}, {i:"✏️", n:"Черчение", s:"16:50", e:"17:30", r:"?"}, {i:"🇬🇧", n:"Английский язык", s:"17:40", e:"18:20", r:"?"}, {i:"📜", n:"История", s:"18:25", e:"19:05", r:"?"}],
+        3: [{i:"🇬🇧", n:"Английский язык", s:"13:35", e:"14:15", r:"?"}, {i:"🇷🇺", n:"Русский язык", s:"14:20", e:"15:00", r:"?"}, {i:"🧪", n:"Химия", s:"15:05", e:"15:45", r:"?"}, {i:"📐", n:"Геометрия", s:"16:00", e:"16:40", r:"?"}, {i:"🌍", n:"География", s:"16:50", e:"17:30", r:"?"}, {i:"🇷🇺", n:"Русский язык", s:"17:40", e:"18:20", r:"?"}, {i:"🔨", n:"Технология", s:"18:25", e:"19:05", r:"?"}],
+        4: [{i:"🔢", n:"РМГ", s:"13:35", e:"14:15", r:"?"}, {i:"⚡", n:"Физика", s:"14:20", e:"15:00", r:"?"}, {i:"📚", n:"Литература", s:"15:05", e:"15:45", r:"?"}, {i:"📜", n:"История", s:"16:00", e:"16:40", r:"?"}, {i:"📐", n:"Геометрия", s:"16:50", e:"17:30", r:"?"}, {i:"💻", n:"Информатика", s:"17:40", e:"18:20", r:"?"}, {i:"⚽", n:"Физкультура", s:"18:25", e:"19:05", r:"Спортзал"}],
+        5: [{i:"🇬🇧", n:"Английский язык", s:"13:35", e:"14:15", r:"?"}, {i:"📐", n:"Алгебра", s:"14:20", e:"15:00", r:"?"}, {i:"🌍", n:"География", s:"15:05", e:"15:45", r:"?"}, {i:"🌍", n:"География Т", s:"16:00", e:"16:40", r:"?"}, {i:"🧬", n:"Биология", s:"16:50", e:"17:30", r:"?"}, {i:"🛡️", n:"ОБЗР", s:"17:40", e:"18:20", r:"?"}, {i:"⚖️", n:"Обществознание", s:"18:25", e:"19:05", r:"?"}]
     };
 
-    // Глобальные переменные
     window.schedule = {};
     window.settings = { theme: '#FFD60A', showEmoji: true };
     window.selectedDay = 1;
     window.editingIndex = -1;
-
-    // --- ФУНКЦИИ ---
+    window.quickHWTarget = null; // {day: 1, idx: 0}
 
     window.pushToCloud = function() { 
         set(dbRef, { schedule: window.schedule, settings: window.settings }); 
@@ -316,7 +400,7 @@
 
     window.updateTimer = function() {
         const now = new Date();
-        const d = now.getDay(); // 0-Вс, 1-Пн...
+        const d = now.getDay();
         const curMin = now.getHours()*60 + now.getMinutes();
         document.getElementById('headerTime').innerText = now.toLocaleTimeString().slice(0,5);
         document.getElementById('headerDate').innerText = now.toLocaleDateString('ru-RU', {weekday:'short', day:'numeric'}).toUpperCase();
@@ -332,15 +416,12 @@
             const l = today[i];
             const s = getMin(l.s); const e = getMin(l.e);
             
-            // Идет урок
             if(curMin >= s && curMin < e) {
                 const total = (e-s)*60; const passed = (curMin-s)*60 + now.getSeconds();
                 const nextLessonName = (i+1 < today.length) ? today[i+1].n : "Домой";
                 setCard('lesson', l.i, l.n, l.r, total-passed, (passed/total)*100, nextLessonName);
                 active = true; break;
             }
-            
-            // Перемена (до следующего урока)
             if(i+1 < today.length) {
                 const nextL = today[i+1]; const nextS = getMin(nextL.s);
                 if(curMin >= e && curMin < nextS) {
@@ -350,15 +431,12 @@
                 }
             }
         }
-        
         if(!active) {
             const first = getMin(today[0].s);
             if(curMin < first) {
-                // Утро до уроков
                 const diff = (first*60) - (curMin*60+now.getSeconds());
                 setCard('wait', '🎒', 'ОЖИДАНИЕ', 'Скоро уроки', diff, 0, today[0].n);
             } else {
-                // Уроки кончились
                 setCard('chill', '🏠', 'ВСЕ УРОКИ', 'Домой!', 0, 100, 'Завтра');
             }
         }
@@ -393,28 +471,60 @@
 
     window.renderScheduleList = function() {
         const container = document.getElementById('fullScheduleList');
+        const hwContainer = document.getElementById('homeworkSummaryList');
+        
         if(!container) return;
         container.innerHTML = '';
+        if(hwContainer) hwContainer.innerHTML = '';
+
         const todayIdx = new Date().getDay();
         const days = ['Вс','Понедельник','Вторник','Среда','Четверг','Пятница','Сб'];
-        
+        let hasHomework = false;
+
         for(let d=1; d<=5; d++) {
             if(!window.schedule[d]) continue;
             container.innerHTML += `<div style="padding:15px; font-weight:700; color:${d===todayIdx?'var(--primary)':'#666'}">${days[d]}</div>`;
+            
             window.schedule[d].forEach(l => {
                 const iconHtml = window.settings.showEmoji ? `<span class="lesson-icon">${l.i||'📚'}</span>` : '';
+                let homeworkHtml = '';
+                if(l.h) {
+                     homeworkHtml = `
+                    <div class="homework-badge">
+                        <span>📝</span>
+                        <span>${l.h}</span>
+                    </div>`;
+                    hasHomework = true;
+                    if(hwContainer) {
+                        hwContainer.innerHTML += `
+                        <div class="hw-summary-item">
+                            <span style="font-size:20px; margin-right:12px;">${l.i||'•'}</span>
+                            <div style="flex:1;">
+                                <div style="font-weight:600; font-size:14px; color:#fff;">${l.n}</div>
+                                <div style="color:var(--primary); font-size:13px;">${l.h}</div>
+                                <div style="color:#666; font-size:10px;">${days[d]}</div>
+                            </div>
+                        </div>`;
+                    }
+                }
                 container.innerHTML += `
                 <div class="glass-item ${d===todayIdx?'active-day-row':''}">
-                    <div style="display:flex; align-items:center;">
-                        ${iconHtml}
-                        <div>
-                            <div style="font-weight:600; font-size:16px;">${l.n}</div>
-                            <div style="font-size:12px; color:var(--text-sec);">Каб: ${l.r}</div>
+                    <div style="display:flex; justify-content: space-between; align-items: flex-start; width: 100%;">
+                        <div style="display:flex; align-items:center;">
+                            ${iconHtml}
+                            <div>
+                                <div style="font-weight:600; font-size:16px;">${l.n}</div>
+                                <div style="font-size:12px; color:var(--text-sec);">Каб: ${l.r}</div>
+                            </div>
                         </div>
+                        <div style="text-align:right; font-size:13px; font-family:monospace; min-width: 40px;">${l.s}<br>${l.e}</div>
                     </div>
-                    <div style="text-align:right; font-size:13px; font-family:monospace;">${l.s}<br>${l.e}</div>
+                    ${homeworkHtml}
                 </div>`;
             });
+        }
+        if(!hasHomework && hwContainer) {
+            hwContainer.innerHTML = `<div style="text-align:center; color:#555; font-size:12px; padding:10px;">Заданий пока нет. Отдыхай! 😴</div>`;
         }
     }
 
@@ -442,8 +552,86 @@
             btn.onclick = () => { window.selectedDay = dayNum; window.initAdmin(); };
             selector.appendChild(btn);
         });
+        
+        populateSubjectSelect(); // Загружаем список предметов
         window.renderAdminList();
     }
+
+    // --- НОВАЯ ЛОГИКА: СПИСОК ПРЕДМЕТОВ И ПОИСК СЛЕДУЮЩЕГО ---
+    function populateSubjectSelect() {
+        const select = document.getElementById('hwSubjectSelect');
+        const subjects = new Set();
+        for(let d=1; d<=5; d++) {
+            if(window.schedule[d]) {
+                window.schedule[d].forEach(l => subjects.add(l.n));
+            }
+        }
+        const sorted = Array.from(subjects).sort();
+        select.innerHTML = '<option value="">-- Выбери предмет --</option>';
+        sorted.forEach(s => {
+            select.innerHTML += `<option value="${s}">${s}</option>`;
+        });
+    }
+
+    window.findNextLessonDate = function() {
+        const subject = document.getElementById('hwSubjectSelect').value;
+        const label = document.getElementById('hwTargetLabel');
+        const todayDay = new Date().getDay(); // 0-6
+        const daysName = ['Вс','Понедельник','Вторник','Среда','Четверг','Пятница','Сб'];
+        
+        window.quickHWTarget = null;
+        
+        if(!subject) {
+            label.innerText = "Сначала выбери предмет";
+            label.style.color = "var(--primary)";
+            return;
+        }
+
+        // Алгоритм: Ищем предмет начиная с (Сегодня + 1)
+        let foundDay = -1;
+        let foundIdx = -1;
+        
+        // Проверяем 7 дней вперед
+        for(let offset=1; offset<=7; offset++) {
+             // Магия вычисления дня недели (циклично)
+             let checkDay = (todayDay + offset); 
+             while(checkDay > 7) checkDay -= 7; // Нормализация
+             if(checkDay > 5) continue; // Пропускаем выходные, если в расписании их нет
+             
+             if(window.schedule[checkDay]) {
+                 const idx = window.schedule[checkDay].findIndex(l => l.n === subject);
+                 if(idx !== -1) {
+                     foundDay = checkDay;
+                     foundIdx = idx;
+                     break;
+                 }
+             }
+        }
+
+        if(foundDay !== -1) {
+            window.quickHWTarget = { day: foundDay, idx: foundIdx };
+            label.innerHTML = `Следующий урок: <span style="color:white;">${daysName[foundDay]}</span>`;
+            label.style.color = "var(--text-sec)";
+        } else {
+            label.innerText = "Урок не найден в расписании!";
+            label.style.color = "var(--danger)";
+        }
+    }
+
+    window.saveQuickHW = function() {
+        const text = document.getElementById('hwTextQuick').value;
+        const target = window.quickHWTarget;
+        
+        if(!target) { alert("Сначала выбери предмет!"); return; }
+        if(!text) { alert("Напиши задание!"); return; }
+        
+        window.schedule[target.day][target.idx].h = text;
+        window.pushToCloud();
+        alert("ДЗ сохранено!");
+        document.getElementById('hwTextQuick').value = '';
+        window.renderScheduleList(); // Обновить главный список
+    }
+    // ----------------------------------------------------------
 
     window.renderAdminList = function() {
         const list = document.getElementById('editorList');
@@ -451,7 +639,9 @@
         list.innerHTML = '';
         const lessons = window.schedule[window.selectedDay] || [];
         lessons.forEach((l, idx) => {
-            list.innerHTML += `<div class="glass-item" onclick="openEdit(${idx})"><div style="display:flex; align-items:center;"><span style="margin-right:10px; font-size:20px;">${l.i||'📚'}</span><b>${l.n}</b></div><span>✎</span></div>`;
+            // Если есть ДЗ, показываем маркер
+            const hwMarker = l.h ? '<span style="color:var(--primary); margin-left:5px;">📝</span>' : '';
+            list.innerHTML += `<div class="glass-item" onclick="openEdit(${idx})"><div style="display:flex; align-items:center;"><span style="margin-right:10px; font-size:20px;">${l.i||'📚'}</span><b>${l.n}</b>${hwMarker}</div><span>✎</span></div>`;
         });
     }
 
@@ -463,6 +653,10 @@
         document.getElementById('editRoom').value = l.r; 
         document.getElementById('editStart').value = l.s; 
         document.getElementById('editEnd').value = l.e;
+        
+        // Загружаем существующее ДЗ в поле редактирования
+        document.getElementById('editHomework').value = l.h || "";
+        
         document.getElementById('editModal').classList.add('open');
     }
 
@@ -473,6 +667,7 @@
         document.getElementById('editRoom').value = ""; 
         document.getElementById('editStart').value = ""; 
         document.getElementById('editEnd').value = "";
+        document.getElementById('editHomework').value = "";
         document.getElementById('editModal').classList.add('open');
     }
 
@@ -482,13 +677,17 @@
             n: document.getElementById('editName').value, 
             r: document.getElementById('editRoom').value, 
             s: document.getElementById('editStart').value, 
-            e: document.getElementById('editEnd').value 
+            e: document.getElementById('editEnd').value,
+            h: document.getElementById('editHomework').value // Сохраняем ДЗ
         };
         
         if(!newL.n || !newL.s || !newL.e) {
             alert("Заполните название и время!");
             return;
         }
+
+        // Если ДЗ пустое, удаляем поле h, чтобы не засорять базу
+        if(newL.h === "") delete newL.h;
 
         if(!window.schedule[window.selectedDay]) window.schedule[window.selectedDay] = [];
         
@@ -498,7 +697,6 @@
             window.schedule[window.selectedDay][window.editingIndex] = newL; 
         }
         
-        // Сортировка по времени
         window.schedule[window.selectedDay].sort((a,b) => getMin(a.s) - getMin(b.s));
         
         window.pushToCloud(); 
@@ -527,8 +725,6 @@
         btn.classList.add('active');
     }
 
-    // --- MANUAL AI (С исправлением под Code Blocks) ---
-    
     window.openAiModal = function() {
         const request = document.getElementById('aiRequest').value.trim();
         if(!request) { alert("Сначала напишите запрос!"); return; }
@@ -584,7 +780,6 @@
         if(!rawJson) return;
 
         try {
-            // Очистка от markdown code blocks
             let cleanJson = rawJson
                 .replace(/^```json\s*/i, '')
                 .replace(/^```\s*/i, '')
@@ -592,7 +787,6 @@
                 .trim();
 
             const result = JSON.parse(cleanJson);
-
             const newSched = result.new_schedule || result;
             
             if(newSched && (newSched["1"] || newSched[1])) {
@@ -631,6 +825,7 @@
         window.renderScheduleList();
         if(document.getElementById('adminInterface').style.display === 'block') {
             window.renderAdminList();
+            populateSubjectSelect(); // Обновляем список предметов при изменении базы
         }
     });
 
