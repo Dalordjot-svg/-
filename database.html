@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SECURE CORE</title>
+    <style>
+        :root { --bg: #050505; --card-bg: #141414; --primary: #32D74B; --accent: #FFD60A; --danger: #FF453A; --text: #fff; --text-sec: #888; }
+        body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, monospace; margin: 0; height: 100vh; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+
+        /* --- СЛОЕНЫЙ ТОРТ (Layers) --- */
+        .layer {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55), opacity 0.4s;
+            z-index: 10;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+        }
+        /* Когда слой пройден, он улетает вверх */
+        .layer.cleared { transform: translateY(-120%) scale(0.9); opacity: 0; pointer-events: none; }
+        
+        /* Z-INDEX для порядка слоев */
+        #layer-color { z-index: 30; background: #000; }
+        #layer-pass { z-index: 20; background: #050505; }
+        #layer-dash { z-index: 10; background: #0a0a0a; display: block; overflow-y: auto; padding: 20px 0; }
+
+        /* ЭЛЕМЕНТЫ УПРАВЛЕНИЯ */
+        .grid-lock { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
+        .btn-color { width: 60px; height: 60px; border-radius: 50%; border: 2px solid #222; transition: 0.1s; cursor: pointer; }
+        .btn-color:active { transform: scale(0.9); border-color: #fff; }
+
+        .input-pass { background: #222; border: 1px solid #333; color: var(--primary); font-size: 30px; letter-spacing: 10px; padding: 15px; border-radius: 12px; text-align: center; width: 200px; outline: none; margin-bottom: 20px; }
+        
+        /* ДЭШБОРД */
+        .dash-header { padding: 0 20px 20px; border-bottom: 1px solid #222; display: flex; justify-content: space-between; align-items: center; }
+        .dash-title { font-size: 20px; font-weight: 800; }
+        .btn-mini { background: #222; color: #fff; border: none; padding: 5px 12px; border-radius: 20px; cursor: pointer; font-size: 12px; }
+
+        /* ТАБЫ */
+        .tabs { display: flex; gap: 10px; padding: 15px 20px; overflow-x: auto; }
+        .tab { background: #1C1C1E; padding: 8px 16px; border-radius: 12px; font-size: 14px; color: #666; cursor: pointer; border: 1px solid transparent; transition: 0.2s; white-space: nowrap; }
+        .tab.active { background: rgba(50, 215, 75, 0.1); color: var(--primary); border-color: var(--primary); }
+
+        /* СПИСКИ */
+        .content-area { padding: 0 20px 50px; }
+        .list-section { display: none; animation: fadeIn 0.3s; }
+        .list-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .item-card { background: #141414; border: 1px solid #222; padding: 15px; border-radius: 16px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; }
+        .item-info { flex: 1; }
+        .item-title { font-weight: 600; font-size: 15px; color: #fff; }
+        .item-sub { font-size: 12px; color: #666; margin-top: 2px; }
+        .item-actions { display: flex; gap: 8px; }
+        
+        .btn-act { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; font-size: 16px; }
+        .btn-edit { background: rgba(255, 214, 10, 0.15); color: var(--accent); }
+        .btn-del { background: rgba(255, 69, 58, 0.15); color: var(--danger); }
+        .btn-restore { background: rgba(50, 215, 75, 0.15); color: var(--primary); width: auto; padding: 0 10px; font-size: 12px; font-weight: bold; }
+
+        /* ИНДИКАТОРЫ */
+        .dots { display: flex; gap: 8px; margin-bottom: 20px; }
+        .dot { width: 10px; height: 10px; border-radius: 50%; background: #222; transition: 0.3s; }
+        .dot.active { background: var(--primary); box-shadow: 0 0 10px var(--primary); }
+        .shake { animation: shake 0.4s; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
+
+        /* УВЕДОМЛЕНИЕ */
+        #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(100px); background: #333; padding: 10px 20px; border-radius: 30px; font-size: 13px; opacity: 0; transition: 0.3s; z-index: 999; }
+        #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+    </style>
+</head>
+<body>
+
+    <div id="toast">Notification</div>
+
+    <div id="layer-color" class="layer">
+        <div style="margin-bottom: 20px; color: #555; font-size: 10px; letter-spacing: 2px;">LAYER 1: COLOR AUTH</div>
+        <div class="dots">
+            <div class="dot" id="d1"></div><div class="dot" id="d2"></div><div class="dot" id="d3"></div>
+        </div>
+        <div class="grid-lock">
+            <div class="btn-color" style="background:#FF3B30" onclick="tapColor('red')"></div>
+            <div class="btn-color" style="background:#32D74B" onclick="tapColor('green')"></div>
+            <div class="btn-color" style="background:#0A84FF" onclick="tapColor('blue')"></div>
+            <div class="btn-color" style="background:#BF5AF2" onclick="tapColor('pink')"></div>
+            
+            <div class="btn-color" style="background:#FF9500" onclick="tapColor('orange')"></div>
+            <div class="btn-color" style="background:#FFD60A" onclick="tapColor('yellow')"></div>
+            <div class="btn-color" style="background:#fff" onclick="tapColor('white')"></div>
+            <div class="btn-color" style="background:#64D2FF" onclick="tapColor('cyan')"></div>
+            
+            <div class="btn-color" style="background:#AC8E68" onclick="tapColor('brown')"></div>
+            <div class="btn-color" style="background:#32D74B" onclick="tapColor('green')"></div>
+            <div class="btn-color" style="background:#5E5CE6" onclick="tapColor('indigo')"></div>
+            <div class="btn-color" style="background:#FF375F" onclick="tapColor('rose')"></div>
+        </div>
+    </div>
+
+    <div id="layer-pass" class="layer">
+        <div style="margin-bottom: 20px; color: #555; font-size: 10px; letter-spacing: 2px;">LAYER 2: NUMERIC AUTH</div>
+        <div style="font-size: 40px; margin-bottom: 20px;">🔒</div>
+        <input type="tel" id="pinInput" class="input-pass" maxlength="6" placeholder="******">
+        <button class="btn-mini" onclick="checkPin()" style="background: var(--primary); color: #000; padding: 10px 30px; font-weight: bold;">UNLOCK CORE</button>
+    </div>
+
+    <div id="layer-dash" class="layer">
+        <div class="dash-header">
+            <div class="dash-title">CORE <span style="color:var(--primary)">OS</span></div>
+            <button class="btn-mini" onclick="window.location.href='index.html'">Выход</button>
+        </div>
+
+        <div class="tabs">
+            <div class="tab active" onclick="setTab('schedule', this)">📅 Расписание</div>
+            <div class="tab" onclick="setTab('homework', this)">📝 Только ДЗ</div>
+            <div class="tab" onclick="setTab('trash', this)" style="color:var(--danger)">🗑 Корзина</div>
+        </div>
+
+        <div class="content-area">
+            <div id="tab-schedule" class="list-section active">
+                <div id="scheduleList">Загрузка...</div>
+            </div>
+
+            <div id="tab-homework" class="list-section">
+                <div style="margin-bottom: 15px; font-size: 12px; color: #666;">Здесь только уроки с записанным ДЗ.</div>
+                <div id="hwList">Нет заданий</div>
+            </div>
+
+            <div id="tab-trash" class="list-section">
+                <div style="display:flex; justify-content:space-between; margin-bottom: 15px;">
+                    <span style="font-size:12px; color:#666;">Хранение 24 часа</span>
+                    <span style="font-size:12px; color:var(--danger);" id="trashCount">0 файлов</span>
+                </div>
+                <div id="trashList">Пусто</div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, set, onValue, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        // КОНФИГ FIREBASE (Вставь свои ключи, если они отличаются)
+        const firebaseConfig = {
+            apiKey: "AIzaSyBa3MKrLHcRPauIyzxgxfNpLUphmehJAkg",
+            authDomain: "moon-logistik.firebaseapp.com",
+            databaseURL: "https://moon-logistik-default-rtdb.firebaseio.com",
+            projectId: "moon-logistik",
+            storageBucket: "moon-logistik.firebasestorage.app",
+            messagingSenderId: "335239459996",
+            appId: "1:335239459996:web:98a3cd3508767cfde6a959",
+            measurementId: "G-N3GHR5KS7Q"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const dbRef = ref(db, 'school_os_data_v1');
+        const trashRef = ref(db, 'school_os_trash_v1');
+
+        let fullData = { schedule: {} };
+        let trashData = {};
+        let colorSeq = [];
+
+        // --- ЛОГИКА 1: ЦВЕТОВОЙ СЛОЙ (Green -> Pink -> Green) ---
+        window.tapColor = function(c) {
+            colorSeq.push(c);
+            updateDots();
+            
+            if (colorSeq.length === 1 && colorSeq[0] !== 'green') resetColor();
+            if (colorSeq.length === 2 && colorSeq[1] !== 'pink') resetColor();
+            
+            if (colorSeq.length === 3) {
+                if (colorSeq[2] === 'green') {
+                    // УСПЕХ: Убираем слой 1
+                    document.getElementById('layer-color').classList.add('cleared');
+                    toast("Уровень 1 пройден");
+                } else {
+                    resetColor();
+                }
+            }
+        }
+
+        function updateDots() {
+            for(let i=1; i<=3; i++) {
+                const d = document.getElementById('d'+i);
+                if (i <= colorSeq.length) d.classList.add('active');
+                else d.classList.remove('active');
+            }
+        }
+
+        function resetColor() {
+            colorSeq = [];
+            updateDots();
+            const l = document.getElementById('layer-color');
+            l.classList.add('shake');
+            setTimeout(() => l.classList.remove('shake'), 400);
+            toast("Ошибка доступа!");
+        }
+
+        // --- ЛОГИКА 2: ПИН КОД ---
+        window.checkPin = function() {
+            const val = document.getElementById('pinInput').value;
+            if (val === '202020') {
+                document.getElementById('layer-pass').classList.add('cleared');
+                toast("Добро пожаловать, Админ");
+                initDB(); // Загружаем данные
+            } else {
+                document.getElementById('pinInput').value = '';
+                toast("Неверный PIN");
+            }
+        }
+
+        // --- ЛОГИКА 3: БАЗА ДАННЫХ И ИНТЕРФЕЙС ---
+        function initDB() {
+            // Слушаем расписание
+            onValue(dbRef, (snapshot) => {
+                fullData = snapshot.val() || { schedule: {} };
+                renderSchedule();
+                renderHW();
+            });
+
+            // Слушаем корзину (удаляем старое > 24ч)
+            onValue(trashRef, (snapshot) => {
+                trashData = snapshot.val() || {};
+                cleanOldTrash();
+                renderTrash();
+            });
+        }
+
+        // Рендер Расписания
+        function renderSchedule() {
+            const container = document.getElementById('scheduleList');
+            container.innerHTML = '';
+            const days = ['Вс','Понедельник','Вторник','Среда','Четверг','Пятница','Сб'];
+
+            for(let d=1; d<=5; d++) {
+                if(!fullData.schedule[d]) continue;
+                container.innerHTML += `<div style="margin: 20px 0 10px; color: var(--primary); font-weight:bold; font-size:14px;">${days[d].toUpperCase()}</div>`;
+                
+                fullData.schedule[d].forEach((l, idx) => {
+                    const hasHW = l.h ? '📝' : '';
+                    container.innerHTML += `
+                    <div class="item-card">
+                        <div class="item-info">
+                            <div class="item-title">${l.i||'📚'} ${l.n} ${hasHW}</div>
+                            <div class="item-sub">${l.s} - ${l.e} | Каб: ${l.r}</div>
+                        </div>
+                        <div class="item-actions">
+                            <button class="btn-act btn-edit" onclick="editItem(${d}, ${idx})">✏️</button>
+                            <button class="btn-act btn-del" onclick="deleteItem(${d}, ${idx})">🗑</button>
+                        </div>
+                    </div>`;
+                });
+            }
+        }
+
+        // Рендер ДЗ
+        function renderHW() {
+            const container = document.getElementById('hwList');
+            container.innerHTML = '';
+            let count = 0;
+            const days = ['Вс','ПН','ВТ','СР','ЧТ','ПТ','Сб'];
+
+            for(let d=1; d<=5; d++) {
+                if(fullData.schedule[d]) {
+                    fullData.schedule[d].forEach((l, idx) => {
+                        if(l.h) {
+                            count++;
+                            container.innerHTML += `
+                            <div class="item-card" style="border-color: rgba(255, 214, 10, 0.3);">
+                                <div class="item-info">
+                                    <div class="item-title">${l.n} <span style="color:#666; font-size:10px;">(${days[d]})</span></div>
+                                    <div class="item-sub" style="color:var(--accent);">${l.h}</div>
+                                </div>
+                                <div class="item-actions">
+                                    <button class="btn-act btn-del" onclick="clearHW(${d}, ${idx})">✕</button>
+                                </div>
+                            </div>`;
+                        }
+                    });
+                }
+            }
+            if(count === 0) container.innerHTML = '<div style="text-align:center; color:#444; padding:20px;">Нет активных заданий</div>';
+        }
+
+        // Рендер Корзины
+        function renderTrash() {
+            const container = document.getElementById('trashList');
+            container.innerHTML = '';
+            const items = Object.entries(trashData);
+            document.getElementById('trashCount').innerText = `${items.length} файл(ов)`;
+
+            if(items.length === 0) {
+                container.innerHTML = '<div style="text-align:center; color:#444; padding:20px;">Корзина пуста</div>';
+                return;
+            }
+
+            items.sort((a,b) => b[1].deletedAt - a[1].deletedAt).forEach(([key, item]) => {
+                const date = new Date(item.deletedAt).toLocaleTimeString().slice(0,5);
+                container.innerHTML += `
+                <div class="item-card" style="opacity: 0.7;">
+                    <div class="item-info">
+                        <div class="item-title">${item.data.n}</div>
+                        <div class="item-sub">Удалено в ${date} (День: ${item.day})</div>
+                    </div>
+                    <div class="item-actions">
+                        <button class="btn-act btn-restore" onclick="restoreItem('${key}')">Восстановить</button>
+                    </div>
+                </div>`;
+            });
+        }
+
+        // --- ДЕЙСТВИЯ (Удаление, Очистка ДЗ, Восстановление) ---
+
+        window.deleteItem = function(day, idx) {
+            if(!confirm("Удалить урок в корзину?")) return;
+            
+            const lesson = fullData.schedule[day][idx];
+            // Сохраняем в корзину
+            const trashKey = 'del_' + Date.now();
+            const trashItem = {
+                data: lesson,
+                day: day, // Запоминаем день недели
+                deletedAt: Date.now()
+            };
+            
+            // Пишем в корзину
+            set(ref(db, `school_os_trash_v1/${trashKey}`), trashItem);
+
+            // Удаляем из расписания
+            fullData.schedule[day].splice(idx, 1);
+            set(dbRef, fullData);
+            toast("Файл перемещен в корзину");
+        }
+
+        window.clearHW = function(day, idx) {
+            if(!confirm("Очистить поле ДЗ?")) return;
+            delete fullData.schedule[day][idx].h;
+            set(dbRef, fullData);
+            toast("ДЗ очищено");
+        }
+
+        window.restoreItem = function(key) {
+            const item = trashData[key];
+            if(!item) return;
+
+            // Возвращаем в расписание (в конец списка дня)
+            if(!fullData.schedule[item.day]) fullData.schedule[item.day] = [];
+            fullData.schedule[item.day].push(item.data);
+            
+            // Сортируем по времени, чтобы встало на место
+            fullData.schedule[item.day].sort((a,b) => {
+                const tA = parseInt(a.s.replace(':',''));
+                const tB = parseInt(b.s.replace(':',''));
+                return tA - tB;
+            });
+
+            // Обновляем базу и удаляем из корзины
+            set(dbRef, fullData);
+            remove(ref(db, `school_os_trash_v1/${key}`));
+            toast("Файл восстановлен!");
+        }
+
+        // Автоочистка старого (старше 24 часов)
+        function cleanOldTrash() {
+            const now = Date.now();
+            const oneDay = 24 * 60 * 60 * 1000;
+            
+            Object.entries(trashData).forEach(([key, item]) => {
+                if (now - item.deletedAt > oneDay) {
+                    remove(ref(db, `school_os_trash_v1/${key}`));
+                    console.log("Auto-deleted old item:", key);
+                }
+            });
+        }
+
+        window.editItem = function(d, i) {
+            const l = fullData.schedule[d][i];
+            const newName = prompt("Название предмета:", l.n);
+            if(newName) {
+                fullData.schedule[d][i].n = newName;
+                fullData.schedule[d][i].r = prompt("Кабинет:", l.r) || l.r;
+                set(dbRef, fullData);
+            }
+        }
+
+        // --- УТИЛИТЫ ---
+        function toast(msg) {
+            const t = document.getElementById('toast');
+            t.innerText = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2000);
+        }
+
+        window.setTab = function(name, el) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            el.classList.add('active');
+            document.querySelectorAll('.list-section').forEach(s => s.classList.remove('active'));
+            document.getElementById('tab-'+name).classList.add('active');
+        }
+
+    </script>
+</body>
+</html>
