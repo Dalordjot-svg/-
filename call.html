@@ -3,125 +3,190 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Экран Клиента</title>
+    <title>Вызов и Чаевые</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap');
+
+        * {
+            box-sizing: border-box;
+        }
 
         body {
-            margin: 0; padding: 0; display: flex; justify-content: center; align-items: center;
-            height: 100vh; background: radial-gradient(circle at center, #4e342e 0%, #21130d 100%);
-            font-family: 'Montserrat', sans-serif; overflow: hidden; color: #ffecd2; user-select: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: radial-gradient(circle at center, #4e342e 0%, #21130d 100%);
+            font-family: 'Montserrat', sans-serif;
+            overflow: hidden;
+            color: #ffecd2;
+            user-select: none;
+            -webkit-font-smoothing: antialiased;
         }
 
-        /* Фоновые частицы */
-        .bokeh { position: absolute; border-radius: 50%; background: radial-gradient(circle, rgba(255,179,0,0.4) 0%, rgba(255,179,0,0) 70%); filter: blur(8px); animation: float-light linear infinite alternate; z-index: 1; }
+        /* --- ЭФФЕКТ БОКЕ --- */
+        .bokeh {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 179, 0, 0.4) 0%, rgba(255, 179, 0, 0) 70%);
+            filter: blur(8px);
+            animation: float-light linear infinite alternate;
+            pointer-events: none;
+            z-index: 1;
+        }
         .b1 { width: 150px; height: 150px; left: 5%; top: 10%; animation-duration: 8s; }
         .b2 { width: 250px; height: 250px; right: 10%; top: 20%; animation-duration: 12s; }
+        .b3 { width: 100px; height: 100px; left: 20%; bottom: 15%; animation-duration: 10s; }
+        .b4 { width: 200px; height: 200px; right: 15%; bottom: 5%; animation-duration: 14s; }
+        @keyframes float-light {
+            0% { transform: translateY(0) scale(1); opacity: 0.5; }
+            100% { transform: translateY(-30px) scale(1.1); opacity: 0.8; }
+        }
 
-        @keyframes float-light { 0% { transform: translateY(0); opacity: 0.5; } 100% { transform: translateY(-30px); opacity: 0.8; } }
+        /* --- КОНТЕЙНЕРЫ --- */
+        /* Жесткое центрирование, чтобы ничего не съезжало влево */
+        .view-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.4s ease;
+            z-index: 10;
+        }
+
+        .hidden { display: none !important; }
 
         /* --- КНОПКА ВЫЗОВА --- */
-        .call-container {
-            position: relative; z-index: 10; transition: opacity 0.4s ease, transform 0.4s ease;
-        }
         #callBtn {
-            width: 260px; height: 260px; border-radius: 50%; border: none;
+            width: 260px; height: 260px;
+            border-radius: 50%; border: none;
             background: linear-gradient(145deg, #d7ccc8, #a1887f);
             box-shadow: 8px 8px 16px rgba(0,0,0,0.5), -8px -8px 16px rgba(255,255,255,0.05);
-            cursor: pointer; display: flex; flex-direction: column; justify-content: center; align-items: center;
-            color: #3e2723; transition: all 0.3s;
+            cursor: pointer; outline: none;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            transition: all 0.3s; color: #3e2723;
         }
         #callBtn:not(.calling-state) { animation: idleHover 4s ease-in-out infinite alternate; }
         @keyframes idleHover { 0% { transform: translateY(0); } 100% { transform: translateY(-8px); } }
-        #callBtn h1 { font-size: 2.2rem; margin: 0; font-weight: 800; z-index: 2; }
-        #callBtn p { font-size: 1rem; margin-top: 5px; font-weight: 600; text-transform: uppercase; z-index: 2; }
-        .icon { font-size: 2.5rem; margin-bottom: 10px; z-index: 2; }
-        #callBtn.calling-state { background: linear-gradient(145deg, #ffca28, #ff8f00); color: #fff; box-shadow: 0 0 30px rgba(255,143,0,0.6); }
-        .status-msg { margin-top: 40px; font-size: 1.2rem; text-align: center; color: #ffcc80; transition: opacity 0.3s; }
+        #callBtn:active { transform: scale(0.95); }
+        #callBtn h1, #callBtn p, .icon { position: relative; z-index: 2; }
+        #callBtn h1 { font-size: 2.2rem; margin: 0; font-weight: 700; }
+        #callBtn p { font-size: 1rem; margin-top: 5px; font-weight: 600; opacity: 0.8; text-transform: uppercase; }
+        .icon { font-size: 2.5rem; margin-bottom: 10px; }
+        #callBtn.calling-state { background: linear-gradient(145deg, #ffca28, #ff8f00); color: #fff; box-shadow: 0 0 30px rgba(255, 143, 0, 0.6); }
 
-        /* --- АНИМАЦИЯ ЗЕЛЕНОЙ ВОЛНЫ --- */
-        .green-wave {
-            position: absolute; top: 50%; left: 50%;
-            width: 10px; height: 10px;
-            background: linear-gradient(135deg, #43a047, #1b5e20); /* Красивый зеленый */
-            border-radius: 50%;
-            transform: translate(-50%, -50%) scale(0);
-            z-index: 20; pointer-events: none;
-            transition: transform 0.8s cubic-bezier(0.64, 0.04, 0.35, 1);
-        }
-        .green-wave.active { transform: translate(-50%, -50%) scale(350); }
+        .status-msg { margin-top: 40px; font-size: 1.2rem; text-align: center; color: #ffcc80; }
 
-        /* --- ЦЕНТРАЛЬНАЯ СУММА (Шаг 1) --- */
-        .center-bill {
-            position: absolute; top: 50%; left: 50%;
-            transform: translate(-50%, -50%) scale(0);
-            font-size: 5rem; font-weight: 800; color: #fff;
-            text-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            z-index: 25; opacity: 0;
-            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        .center-bill.pop { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-
-        /* --- МОДУЛЬНЫЙ ИНТЕРФЕЙС (Шаг 2) --- */
-        .modular-ui {
-            position: absolute; z-index: 30;
-            display: flex; gap: 40px; align-items: center;
-            opacity: 0; pointer-events: none; transform: translateY(20px);
-            transition: opacity 0.6s ease 0.2s, transform 0.6s ease 0.2s;
-            width: 90%; max-width: 900px;
-        }
-        .modular-ui.visible { opacity: 1; pointer-events: auto; transform: translateY(0); }
-
-        /* Левый модуль: QR */
-        .module-left {
-            background: white; padding: 20px; border-radius: 24px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.4);
-            display: flex; flex-direction: column; align-items: center;
-        }
-        .qr-placeholder {
-            width: 300px; height: 300px; background: #eee; border-radius: 12px;
-            display: flex; justify-content: center; align-items: center;
-            color: #888; font-weight: bold; font-size: 1.2rem; border: 4px dashed #ccc;
+        /* --- ИНТЕРФЕЙС ЧАЕВЫХ --- */
+        .tips-card {
+            background: rgba(46, 29, 23, 0.9);
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+            border: 1px solid #ffcc80;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            backdrop-filter: blur(10px);
         }
 
-        /* Правый модуль: Инфа и кнопки */
-        .module-right {
-            flex: 1; background: rgba(0,0,0,0.3); padding: 40px; border-radius: 24px;
-            backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2);
+        .tips-card h1 { color: #ffca28; margin: 0 0 10px; font-size: 2rem; }
+        .tips-card .bill-text { font-size: 1.4rem; margin-bottom: 30px; }
+
+        .tips-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
         }
-        .module-right h2 { margin: 0 0 5px; color: #a5d6a7; font-size: 1.5rem; font-weight: 600; }
-        .total-display { font-size: 3.5rem; font-weight: 800; color: white; margin-bottom: 20px; text-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-        
-        .tip-section p { font-size: 1.2rem; margin-bottom: 15px; color: #e8f5e9; }
-        .tips-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 30px; }
+
         .tip-btn {
-            background: rgba(255,255,255,0.1); border: 2px solid #a5d6a7; color: white;
-            padding: 15px 0; border-radius: 12px; font-size: 1.5rem; font-weight: bold;
-            cursor: pointer; transition: all 0.2s;
+            background: linear-gradient(135deg, #ffca28, #ff8f00);
+            color: #3e2723;
+            border: none;
+            padding: 15px 0;
+            border-radius: 12px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
         }
-        .tip-btn:active { transform: scale(0.9); }
-        .tip-btn.selected { background: #a5d6a7; color: #1b5e20; }
-
-        .instructions { font-size: 1rem; color: #c8e6c9; line-height: 1.5; margin-bottom: 30px; opacity: 0.9; }
         
-        .btn-cancel {
-            background: transparent; color: white; border: 1px solid white;
-            padding: 15px 30px; border-radius: 12px; font-size: 1.2rem;
-            cursor: pointer; width: 100%; transition: background 0.2s;
+        /* Активное состояние кнопки (когда выбрали процент) */
+        .tip-btn.active {
+            background: #ffffff;
+            color: #e65100;
+            box-shadow: 0 0 20px rgba(255, 202, 40, 0.8);
+            transform: scale(1.08);
+            border: 2px solid #ffca28;
         }
-        .btn-cancel:active { background: rgba(255,255,255,0.2); }
 
-        .hidden-scale { transform: scale(0) !important; opacity: 0 !important; pointer-events: none; }
+        /* Кнопка "Перейти к оплате" */
+        .btn-proceed {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 12px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 15px;
+            transition: transform 0.2s;
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+        }
+        .btn-proceed:active { transform: scale(0.95); }
+
+        .btn-cancel {
+            background: transparent;
+            color: #aaa;
+            border: 1px solid #aaa;
+            padding: 12px 30px;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.2s;
+        }
+        .btn-cancel:active { background: #aaa; color: #21130d; }
+
+        /* --- ЭКРАН ОПЛАТЫ ПО QR --- */
+        .payment-screen {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 30px;
+            text-align: left;
+        }
+        
+        .qr-code {
+            width: 180px; 
+            height: 180px;
+            border-radius: 12px;
+            border: 5px solid #ffca28;
+            background: white; /* Чтобы QR код читался без проблем на темном фоне */
+        }
+
+        .payment-info { flex: 1; }
+        .payment-info h2 { margin: 0 0 10px; color: #ffca28; font-size: 1.5rem; }
+        .payment-info .total { font-size: 2.2rem; font-weight: bold; color: white; margin-bottom: 15px; }
+        .payment-info p { margin: 0 0 8px; font-size: 1rem; color: #ccc; line-height: 1.4; }
+
     </style>
 </head>
 <body>
 
-    <div class="bokeh b1"></div><div class="bokeh b2"></div>
+    <div class="bokeh b1"></div><div class="bokeh b2"></div><div class="bokeh b3"></div><div class="bokeh b4"></div>
 
-    <div class="green-wave" id="greenWave"></div>
-    <div class="center-bill" id="centerBill">0 ₽</div>
-
-    <div class="call-container" id="callContainer">
+    <div class="view-container" id="callContainer">
         <button id="callBtn">
             <div class="icon" id="btnIcon">☕</div>
             <h1 id="btnTitle">ВЫЗВАТЬ</h1>
@@ -130,33 +195,45 @@
         <div class="status-msg" id="statusMsg">Нажмите, чтобы позвать сотрудника</div>
     </div>
 
-    <div class="modular-ui" id="modularUi">
-        <div class="module-left">
-            <div class="qr-placeholder">МЕСТО ДЛЯ QR СБЕРА</div>
-            <p style="color: #333; margin-top: 15px; font-weight: bold;">Наведите камеру</p>
+    <div class="view-container tips-card hidden" id="tipsContainer">
+        
+        <div id="tipSelection">
+            <h1>Спасибо за покупку! 💖</h1>
+            <div class="bill-text">Сумма заказа: <strong id="billAmount">0</strong> ₽</div>
+            <p style="margin-bottom: 20px; font-size: 1.2rem;">Хотите оставить чаевые?</p>
+            
+            <div class="tips-grid">
+                <button class="tip-btn" data-percent="5">5%</button>
+                <button class="tip-btn" data-percent="10">10%</button>
+                <button class="tip-btn" data-percent="15">15%</button>
+            </div>
+            
+            <div id="tipResultBlock" class="hidden">
+                <p style="font-size: 1.3rem; color: #ffca28; margin-bottom: 15px;">
+                    Сумма чаевых: <strong id="calculatedTip" style="font-size: 1.8rem;">0</strong> ₽
+                </p>
+                <button id="proceedToPayBtn" class="btn-proceed">Перейти к оплате</button>
+            </div>
+
+            <button class="btn-cancel" id="refuseTip">Отказываюсь</button>
         </div>
 
-        <div class="module-right">
-            <h2>Спасибо за заказ! К оплате:</h2>
-            <div class="total-display"><span id="finalTotal">0</span> ₽</div>
-            
-            <div class="tip-section">
-                <p>Добавить чаевые сотруднику?</p>
-                <div class="tips-grid">
-                    <button class="tip-btn" data-percent="5">5%</button>
-                    <button class="tip-btn" data-percent="10">10%</button>
-                    <button class="tip-btn" data-percent="15">15%</button>
+        <div id="tipPayment" class="hidden">
+            <div class="payment-screen">
+                
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https%3A%2F%2Fwww.sberbank.com%2Fsms%2Fpbpn%3FrequisiteNumber%3D79585161679" alt="QR-код Сбербанка" class="qr-code">
+                
+                <div class="payment-info">
+                    <h2>К переводу:</h2>
+                    <div class="total"><span id="totalTipAmount">0</span> ₽</div>
+                    <p>1. Откройте приложение <b>Сбербанк</b></p>
+                    <p>2. Отсканируйте QR-код</p>
+                    <p>3. Введите указанную сумму</p>
                 </div>
             </div>
-
-            <div class="instructions">
-                1. Откройте приложение Сбербанк<br>
-                2. Отсканируйте QR-код слева<br>
-                3. Сумма перевода указана выше
-            </div>
-
-            <button class="btn-cancel" id="finishBtn">Закрыть</button>
+            <button class="btn-cancel" id="finishTip" style="margin-top: 30px;">Завершить</button>
         </div>
+
     </div>
 
     <script type="module">
@@ -167,7 +244,10 @@
           apiKey: "AIzaSyBa3MKrLHcRPauIyzxgxfNpLUphmehJAkg",
           authDomain: "moon-logistik.firebaseapp.com",
           databaseURL: "https://moon-logistik-default-rtdb.firebaseio.com",
-          projectId: "moon-logistik"
+          projectId: "moon-logistik",
+          storageBucket: "moon-logistik.firebasestorage.app",
+          messagingSenderId: "335239459996",
+          appId: "1:335239459996:web:98a3cd3508767cfde6a959"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -176,17 +256,24 @@
         const statusRef = ref(db, 'cashier_call/status');
         const tipRequestRef = ref(db, 'tips_request');
 
-        // Элементы
         const callContainer = document.getElementById('callContainer');
-        const greenWave = document.getElementById('greenWave');
-        const centerBill = document.getElementById('centerBill');
-        const modularUi = document.getElementById('modularUi');
-        const finalTotalEl = document.getElementById('finalTotal');
-        const tipBtns = document.querySelectorAll('.tip-btn');
+        const tipsContainer = document.getElementById('tipsContainer');
+        const tipSelection = document.getElementById('tipSelection');
+        const tipPayment = document.getElementById('tipPayment');
+        const tipResultBlock = document.getElementById('tipResultBlock');
+        
+        const billAmountEl = document.getElementById('billAmount');
+        const calculatedTipEl = document.getElementById('calculatedTip');
+        const totalTipAmountEl = document.getElementById('totalTipAmount');
+        
+        const proceedToPayBtn = document.getElementById('proceedToPayBtn');
+        const refuseBtn = document.getElementById('refuseTip');
+        const finishBtn = document.getElementById('finishTip');
         
         const dingSound = new Audio("data:audio/mp3;base64,//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq");
         
-        let currentBaseBill = 0;
+        let currentBill = 0;
+        let selectedTip = 0;
         let tipTimeout;
 
         // --- ЛОГИКА ВЫЗОВА ---
@@ -211,88 +298,83 @@
             set(statusRef, { is_calling: !isCalling, timestamp: Date.now() });
         });
 
-        // --- АНИМАЦИЯ И ЛОГИКА ЧАЕВЫХ ---
+        // --- ЛОГИКА ЧАЕВЫХ ---
         onValue(tipRequestRef, (snapshot) => {
             const data = snapshot.val();
             if (data && data.active) {
-                runPaymentAnimation(data.amount);
+                showTipScreen(data.amount);
             } else {
-                resetToCallScreen();
+                hideTipScreen();
             }
         });
 
-        function runPaymentAnimation(amount) {
-            currentBaseBill = parseFloat(amount);
-            centerBill.textContent = currentBaseBill.toFixed(0) + " ₽";
-            finalTotalEl.textContent = currentBaseBill.toFixed(0);
-            
-            // Сброс выделения кнопок чаевых
-            tipBtns.forEach(b => b.classList.remove('selected'));
-            
-            // 1. Прячем кнопку вызова
-            callContainer.classList.add('hidden-scale');
-            dingSound.play().catch(e => {});
-
-            // 2. Показываем сумму по центру
-            setTimeout(() => {
-                centerBill.classList.add('pop');
-            }, 300);
-
-            // 3. Запускаем зеленую волну и прячем центральную сумму
-            setTimeout(() => {
-                greenWave.classList.add('active');
-                centerBill.classList.remove('pop');
-                centerBill.style.opacity = '0';
-            }, 1200);
-
-            // 4. Показываем модульный интерфейс
-            setTimeout(() => {
-                modularUi.classList.add('visible');
-            }, 1600);
-
-            startTimer();
+        function resetTimer() {
+            clearTimeout(tipTimeout);
+            tipTimeout = setTimeout(() => {
+                cancelTipRequest();
+            }, 60000); // 60 секунд бездействия = отмена
         }
 
-        // Выбор чаевых
-        tipBtns.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                // Убираем класс у всех, даем нажатой
-                tipBtns.forEach(b => b.classList.remove('selected'));
-                e.target.classList.add('selected');
+        function showTipScreen(amount) {
+            currentBill = parseFloat(amount);
+            billAmountEl.textContent = currentBill.toFixed(0);
+            
+            // Сбрасываем старые состояния
+            document.querySelectorAll('.tip-btn').forEach(b => b.classList.remove('active'));
+            tipResultBlock.classList.add('hidden');
+            
+            dingSound.play().catch(e => console.log("Audio play allowed only after interaction"));
 
-                // Считаем новую сумму
+            callContainer.classList.add('hidden');
+            tipsContainer.classList.remove('hidden');
+            tipSelection.classList.remove('hidden');
+            tipPayment.classList.add('hidden');
+
+            resetTimer();
+        }
+
+        function hideTipScreen() {
+            callContainer.classList.remove('hidden');
+            tipsContainer.classList.add('hidden');
+            clearTimeout(tipTimeout);
+        }
+
+        // Выбор процента
+        document.querySelectorAll('.tip-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                // Подсвечиваем активную кнопку
+                document.querySelectorAll('.tip-btn').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+
+                // Считаем ТОЛЬКО чаевые (без суммы счета)
                 const percent = parseInt(e.target.dataset.percent);
-                const tipAmount = currentBaseBill * (percent / 100);
-                finalTotalEl.textContent = Math.round(currentBaseBill + tipAmount);
+                selectedTip = Math.round(currentBill * (percent / 100));
                 
-                startTimer(); // Сбрасываем таймер
+                // Показываем сумму и кнопку "Перейти к оплате"
+                calculatedTipEl.textContent = selectedTip;
+                tipResultBlock.classList.remove('hidden');
+
+                resetTimer(); // Обновляем таймер
             });
         });
 
-        // Завершение / Сброс
-        document.getElementById('finishBtn').addEventListener('click', () => {
-            set(tipRequestRef, { active: false });
+        // Переход к QR коду
+        proceedToPayBtn.addEventListener('click', () => {
+            totalTipAmountEl.textContent = selectedTip; // Выводим ТОЛЬКО чаевые на экран оплаты
+            
+            tipSelection.classList.add('hidden');
+            tipPayment.classList.remove('hidden');
+            
+            resetTimer();
         });
 
-        function resetToCallScreen() {
-            // Прячем все элементы оплаты
-            modularUi.classList.remove('visible');
-            greenWave.classList.remove('active');
-            centerBill.classList.remove('pop');
-            
-            // Возвращаем кнопку вызова
-            setTimeout(() => {
-                callContainer.classList.remove('hidden-scale');
-            }, 500);
-            
-            clearTimeout(tipTimeout);
-        }
+        // Отказ / Завершение
+        refuseBtn.addEventListener('click', cancelTipRequest);
+        finishBtn.addEventListener('click', cancelTipRequest);
 
-        function startTimer() {
-            clearTimeout(tipTimeout);
-            tipTimeout = setTimeout(() => {
-                set(tipRequestRef, { active: false });
-            }, 60000); // 60 секунд
+        function cancelTipRequest() {
+            set(tipRequestRef, { active: false });
+            hideTipScreen();
         }
 
     </script>
