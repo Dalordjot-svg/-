@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Вызов официанта</title>
+    <title>Вызов и Чаевые</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap');
 
@@ -32,166 +32,163 @@
             pointer-events: none;
             z-index: 1;
         }
-
         .b1 { width: 150px; height: 150px; left: 5%; top: 10%; animation-duration: 8s; }
         .b2 { width: 250px; height: 250px; right: 10%; top: 20%; animation-duration: 12s; }
         .b3 { width: 100px; height: 100px; left: 20%; bottom: 15%; animation-duration: 10s; }
         .b4 { width: 200px; height: 200px; right: 15%; bottom: 5%; animation-duration: 14s; }
-
         @keyframes float-light {
             0% { transform: translateY(0) scale(1); opacity: 0.5; }
             100% { transform: translateY(-30px) scale(1.1); opacity: 0.8; }
         }
 
-        .container {
+        /* --- КОНТЕЙНЕРЫ --- */
+        .view-container {
             position: relative;
             z-index: 10;
             display: flex;
             flex-direction: column;
             align-items: center;
+            transition: opacity 0.4s ease;
         }
 
-        /* --- РАДАР --- */
-        .radar-ring {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 260px;
-            height: 260px;
-            border-radius: 50%;
-            border: 2px solid #ffca28;
-            opacity: 0;
-            pointer-events: none;
-        }
+        .hidden { display: none !important; }
 
-        .calling .radar-ring:nth-child(1) { animation: pulse-ring 2s infinite ease-out; }
-        .calling .radar-ring:nth-child(2) { animation: pulse-ring 2s infinite ease-out 0.6s; }
-        .calling .radar-ring:nth-child(3) { animation: pulse-ring 2s infinite ease-out 1.2s; }
-
-        @keyframes pulse-ring {
-            0% { width: 260px; height: 260px; opacity: 0.8; }
-            100% { width: 450px; height: 450px; opacity: 0; }
-        }
-
-        /* --- КНОПКА --- */
+        /* --- КНОПКА ВЫЗОВА (старая логика) --- */
         #callBtn {
-            width: 260px;
-            height: 260px;
-            border-radius: 50%;
-            border: none;
+            width: 260px; height: 260px;
+            border-radius: 50%; border: none;
             background: linear-gradient(145deg, #d7ccc8, #a1887f);
-            box-shadow: 
-                8px 8px 16px rgba(0, 0, 0, 0.5), 
-                -8px -8px 16px rgba(255, 255, 255, 0.05),
-                inset 2px 2px 5px rgba(255,255,255,0.4);
-            cursor: pointer;
-            outline: none;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            position: relative;
-            -webkit-tap-highlight-color: transparent;
-            color: #3e2723;
-            overflow: hidden; 
+            box-shadow: 8px 8px 16px rgba(0,0,0,0.5), -8px -8px 16px rgba(255,255,255,0.05);
+            cursor: pointer; outline: none;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            transition: all 0.3s; position: relative; color: #3e2723;
         }
+        #callBtn:not(.calling-state) { animation: idleHover 4s ease-in-out infinite alternate; }
+        @keyframes idleHover { 0% { transform: translateY(0); } 100% { transform: translateY(-8px); } }
+        #callBtn:active { transform: scale(0.95); }
+        #callBtn h1, #callBtn p, .icon { position: relative; z-index: 2; }
+        #callBtn h1 { font-size: 2.2rem; margin: 0; font-weight: 700; }
+        #callBtn p { font-size: 1rem; margin-top: 5px; font-weight: 600; opacity: 0.8; text-transform: uppercase; }
+        .icon { font-size: 2.5rem; margin-bottom: 10px; }
+        #callBtn.calling-state { background: linear-gradient(145deg, #ffca28, #ff8f00); color: #fff; box-shadow: 0 0 30px rgba(255, 143, 0, 0.6); }
 
-        #callBtn:not(.calling-state) {
-            animation: idleHover 4s ease-in-out infinite alternate;
-        }
+        .status-msg { margin-top: 40px; font-size: 1.2rem; text-align: center; color: #ffcc80; }
 
-        @keyframes idleHover {
-            0% { transform: translateY(0); }
-            100% { transform: translateY(-8px); }
-        }
-
-        #callBtn:active {
-            transform: scale(0.95);
-            box-shadow: 4px 4px 8px rgba(0,0,0,0.6), -4px -4px 8px rgba(255,255,255,0.05);
-        }
-
-        /* ИСПРАВЛЕНИЕ 1: Добавлено position: relative для корректной работы z-index */
-        #callBtn h1, #callBtn p, .icon {
-            position: relative;
-            z-index: 2; 
-        }
-
-        #callBtn h1 {
-            font-size: 2.2rem;
-            margin: 0;
-            font-weight: 700;
-            letter-spacing: 1px;
-        }
-
-        #callBtn p {
-            font-size: 1rem;
-            margin-top: 5px;
-            font-weight: 600;
-            opacity: 0.8;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-
-        .icon {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-        }
-
-        #callBtn.calling-state {
-            background: linear-gradient(145deg, #ffca28, #ff8f00);
-            color: #fff;
-            box-shadow: 
-                0 0 30px rgba(255, 143, 0, 0.6),
-                inset 2px 2px 5px rgba(255,255,255,0.5);
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
-        }
-
-        /* --- ЭФФЕКТ ВОЛНЫ --- */
-        .ripple {
-            position: absolute;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.4);
-            transform: scale(0);
-            animation: ripple-effect 0.6s linear;
-            pointer-events: none;
-        }
-
-        @keyframes ripple-effect {
-            to { transform: scale(4); opacity: 0; }
-        }
-
-        .status-msg {
-            margin-top: 40px;
-            font-size: 1.2rem;
-            font-weight: 400;
+        /* --- ИНТЕРФЕЙС ЧАЕВЫХ --- */
+        .tips-card {
+            background: rgba(46, 29, 23, 0.9);
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+            border: 1px solid #ffcc80;
             text-align: center;
-            min-height: 1.5em;
-            color: #ffcc80;
-            letter-spacing: 0.5px;
-            opacity: 0.9;
+            max-width: 500px;
+            width: 90%;
+            backdrop-filter: blur(10px);
         }
+
+        .tips-card h1 { color: #ffca28; margin: 0 0 10px; font-size: 2rem; }
+        .tips-card .bill-text { font-size: 1.4rem; margin-bottom: 30px; }
+
+        .tips-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .tip-btn {
+            background: linear-gradient(135deg, #ffca28, #ff8f00);
+            color: #3e2723;
+            border: none;
+            padding: 15px 0;
+            border-radius: 12px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .tip-btn:active { transform: scale(0.9); }
+
+        .btn-cancel {
+            background: transparent;
+            color: #aaa;
+            border: 1px solid #aaa;
+            padding: 12px 30px;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.2s;
+        }
+        .btn-cancel:active { background: #aaa; color: #21130d; }
+
+        /* --- ЭКРАН ОПЛАТЫ ПО QR --- */
+        .payment-screen {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 30px;
+            text-align: left;
+        }
+        .qr-placeholder {
+            width: 180px; height: 180px;
+            background: white;
+            border-radius: 12px;
+            display: flex; justify-content: center; align-items: center;
+            color: black; font-weight: bold; font-size: 0.9rem;
+            border: 5px solid #ffca28;
+        }
+        .payment-info { flex: 1; }
+        .payment-info h2 { margin: 0 0 10px; color: #ffca28; font-size: 1.5rem; }
+        .payment-info .total { font-size: 2rem; font-weight: bold; color: white; margin-bottom: 15px; }
+        .payment-info p { margin: 0 0 5px; font-size: 1rem; color: #ccc; line-height: 1.4; }
+
     </style>
 </head>
 <body>
 
-    <div class="bokeh b1"></div>
-    <div class="bokeh b2"></div>
-    <div class="bokeh b3"></div>
-    <div class="bokeh b4"></div>
+    <div class="bokeh b1"></div><div class="bokeh b2"></div><div class="bokeh b3"></div><div class="bokeh b4"></div>
 
-    <div class="container" id="mainContainer">
-        <div class="radar-ring"></div>
-        <div class="radar-ring"></div>
-        <div class="radar-ring"></div>
-
+    <div class="view-container" id="callContainer">
         <button id="callBtn">
             <div class="icon" id="btnIcon">☕</div>
             <h1 id="btnTitle">ВЫЗВАТЬ</h1>
             <p id="btnSub">официанта</p>
         </button>
         <div class="status-msg" id="statusMsg">Нажмите, чтобы позвать сотрудника</div>
+    </div>
+
+    <div class="view-container tips-card hidden" id="tipsContainer">
+        
+        <div id="tipSelection">
+            <h1>Спасибо за покупку! 💖</h1>
+            <div class="bill-text">Сумма заказа: <strong id="billAmount">0</strong> ₽</div>
+            <p style="margin-bottom: 20px; font-size: 1.2rem;">Хотите оставить чаевые?</p>
+            
+            <div class="tips-grid">
+                <button class="tip-btn" data-percent="5">5%</button>
+                <button class="tip-btn" data-percent="10">10%</button>
+                <button class="tip-btn" data-percent="15">15%</button>
+            </div>
+            <button class="btn-cancel" id="refuseTip">Отказываюсь</button>
+        </div>
+
+        <div id="tipPayment" class="hidden">
+            <div class="payment-screen">
+                <div class="qr-placeholder">МЕСТО ДЛЯ QR<br>СБЕРБАНКА</div>
+                
+                <div class="payment-info">
+                    <h2>К переводу:</h2>
+                    <div class="total"><span id="totalTipAmount">0</span> ₽</div>
+                    <p>1. Откройте приложение Сбербанк</p>
+                    <p>2. Отсканируйте QR-код</p>
+                    <p>3. Введите указанную сумму</p>
+                </div>
+            </div>
+            <button class="btn-cancel" id="finishTip" style="margin-top: 30px;">Завершить</button>
+        </div>
+
     </div>
 
     <script type="module">
@@ -205,114 +202,121 @@
           projectId: "moon-logistik",
           storageBucket: "moon-logistik.firebasestorage.app",
           messagingSenderId: "335239459996",
-          appId: "1:335239459996:web:98a3cd3508767cfde6a959",
-          measurementId: "G-N3GHR5KS7Q"
+          appId: "1:335239459996:web:98a3cd3508767cfde6a959"
         };
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-        const statusRef = ref(db, 'cashier_call/status');
-
-        const btn = document.getElementById('callBtn');
-        const container = document.getElementById('mainContainer');
-        const btnIcon = document.getElementById('btnIcon');
-        const btnTitle = document.getElementById('btnTitle');
-        const btnSub = document.getElementById('btnSub');
-        const statusMsg = document.getElementById('statusMsg');
         
+        // Ссылки на базу
+        const statusRef = ref(db, 'cashier_call/status');
+        const tipRequestRef = ref(db, 'tips_request');
+
+        // Элементы
+        const callContainer = document.getElementById('callContainer');
+        const tipsContainer = document.getElementById('tipsContainer');
+        const tipSelection = document.getElementById('tipSelection');
+        const tipPayment = document.getElementById('tipPayment');
+        
+        const billAmountEl = document.getElementById('billAmount');
+        const totalTipAmountEl = document.getElementById('totalTipAmount');
+        const refuseBtn = document.getElementById('refuseTip');
+        const finishBtn = document.getElementById('finishTip');
+        
+        // Звук "Дзынь" (Base64, чтобы не качать файлы)
+        const dingSound = new Audio("data:audio/mp3;base64,//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq");
+        // Замени заглушку Base64 выше на реальный или добавь файл ding.mp3, если нужен полноценный звук. 
+        // Для демонстрации браузеру нужно разрешить звук.
+        
+        let currentBill = 0;
+        let tipTimeout;
+
+        // --- ЛОГИКА ВЫЗОВА (старая) ---
         let isCalling = false;
-
-        // ИСПРАВЛЕНИЕ 2 и 4: Оптимизированный Ripple + очистка DOM
-        function createRipple(event) {
-            const circle = document.createElement('span');
-            const diameter = Math.max(btn.clientWidth, btn.clientHeight);
-            const radius = diameter / 2;
-            const rect = btn.getBoundingClientRect();
-
-            // pointerdown содержит точные координаты (clientX/Y) для мыши и касаний
-            circle.style.width = circle.style.height = `${diameter}px`;
-            circle.style.left = `${event.clientX - rect.left - radius}px`;
-            circle.style.top = `${event.clientY - rect.top - radius}px`;
-            circle.classList.add('ripple');
-
-            // Удаляем старые волны, если они не успели исчезнуть при быстром клике
-            const existingRipples = btn.querySelectorAll('.ripple');
-            existingRipples.forEach(r => r.remove());
-
-            btn.appendChild(circle);
-
-            // Очищаем DOM после завершения анимации (600ms = 0.6s)
-            setTimeout(() => {
-                circle.remove();
-            }, 600);
-        }
-
+        const btn = document.getElementById('callBtn');
+        
         onValue(statusRef, (snapshot) => {
             const data = snapshot.val();
             isCalling = data ? data.is_calling : false;
-            updateAnimation(isCalling);
-        });
-
-        // ИСПРАВЛЕНИЕ 3: Используем современный pointerdown вместо связки mousedown + touchstart
-        btn.addEventListener('pointerdown', async (e) => {
-            // Захватываем указатель, чтобы избежать прерываний на мобильных
-            if(btn.setPointerCapture) btn.setPointerCapture(e.pointerId);
-
-            createRipple(e);
-            
-            if (navigator.vibrate) navigator.vibrate(50);
-
-            const newState = !isCalling;
-            set(statusRef, {
-                is_calling: newState,
-                timestamp: Date.now()
-            });
-            await keepScreenOn();
-        });
-
-        function updateAnimation(active) {
-            if (active) {
+            if(isCalling) {
                 btn.classList.add('calling-state');
-                container.classList.add('calling');
-                btnIcon.textContent = "🛎️";
-                btnTitle.textContent = "ОЖИДАЙТЕ";
-                btnSub.textContent = "вызов отправлен";
-                statusMsg.textContent = "Официант уже спешит к вашему столику!";
+                document.getElementById('btnTitle').textContent = "ОЖИДАЙТЕ";
+                document.getElementById('statusMsg').textContent = "Официант уже спешит!";
             } else {
                 btn.classList.remove('calling-state');
-                container.classList.remove('calling');
-                btnIcon.textContent = "☕";
-                btnTitle.textContent = "ВЫЗВАТЬ";
-                btnSub.textContent = "официанта";
-                statusMsg.textContent = "Нажмите, чтобы позвать сотрудника";
-            }
-        }
-
-        let wakeLock = null;
-
-        async function keepScreenOn() {
-            if (wakeLock !== null) return; 
-
-            try {
-                if ('wakeLock' in navigator) {
-                    wakeLock = await navigator.wakeLock.request('screen');
-                    console.log('Wake Lock Active');
-                    wakeLock.addEventListener('release', () => {
-                        wakeLock = null;
-                    });
-                }
-            } catch (err) {
-                console.error(`Wake Lock error: ${err.message}`);
-            }
-        }
-        
-        document.addEventListener('pointerdown', keepScreenOn, { once: false });
-        
-        document.addEventListener('visibilitychange', async () => {
-            if (wakeLock === null && document.visibilityState === 'visible') {
-                await keepScreenOn();
+                document.getElementById('btnTitle').textContent = "ВЫЗВАТЬ";
+                document.getElementById('statusMsg').textContent = "Нажмите, чтобы позвать сотрудника";
             }
         });
+
+        btn.addEventListener('pointerdown', () => {
+            set(statusRef, { is_calling: !isCalling, timestamp: Date.now() });
+        });
+
+        // --- ЛОГИКА ЧАЕВЫХ ---
+        onValue(tipRequestRef, (snapshot) => {
+            const data = snapshot.val();
+            if (data && data.active) {
+                showTipScreen(data.amount);
+            } else {
+                hideTipScreen();
+            }
+        });
+
+        function showTipScreen(amount) {
+            currentBill = parseFloat(amount);
+            billAmountEl.textContent = currentBill.toFixed(0);
+            
+            // Воспроизводим дзынь
+            dingSound.play().catch(e => console.log("Звук заблокирован до клика"));
+
+            // Переключаем интерфейс
+            callContainer.classList.add('hidden');
+            tipsContainer.classList.remove('hidden');
+            tipSelection.classList.remove('hidden');
+            tipPayment.classList.add('hidden');
+
+            // Запускаем таймер на 60 секунд. Если ничего не нажали - отмена.
+            clearTimeout(tipTimeout);
+            tipTimeout = setTimeout(() => {
+                cancelTipRequest();
+            }, 60000);
+        }
+
+        function hideTipScreen() {
+            callContainer.classList.remove('hidden');
+            tipsContainer.classList.add('hidden');
+            clearTimeout(tipTimeout);
+        }
+
+        // Обработка кнопок процентов
+        document.querySelectorAll('.tip-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const percent = parseInt(e.target.dataset.percent);
+                const tipAmount = currentBill * (percent / 100);
+                
+                totalTipAmountEl.textContent = Math.round(tipAmount);
+                
+                // Переходим на экран QR
+                tipSelection.classList.add('hidden');
+                tipPayment.classList.remove('hidden');
+
+                // Обновляем таймер еще на 60 секунд для оплаты
+                clearTimeout(tipTimeout);
+                tipTimeout = setTimeout(() => { cancelTipRequest(); }, 60000);
+            });
+        });
+
+        // Отказ или Завершение
+        refuseBtn.addEventListener('click', cancelTipRequest);
+        finishBtn.addEventListener('click', cancelTipRequest);
+
+        function cancelTipRequest() {
+            // Пишем в базу, что запрос закрыт, чтобы пульт сотрудника тоже обновился
+            set(tipRequestRef, { active: false });
+            hideTipScreen();
+        }
+
     </script>
 </body>
 </html>
