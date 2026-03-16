@@ -158,6 +158,44 @@
     </div>
 </div>
 
+<div class="modal-overlay" id="editModal">
+    <div class="modal-card">
+        <h3 style="margin-top:0;">Редактор урока</h3>
+        <input type="text" id="editIcon" class="modal-input" placeholder="Эмодзи (📚)" style="width: 60px; text-align: center; margin: 0 auto 10px auto; display: block;">
+        <input type="text" id="editName" class="modal-input" placeholder="Название предмета">
+        <input type="text" id="editRoom" class="modal-input" placeholder="Кабинет">
+        <div style="display:flex; gap: 10px; margin-bottom: 10px;">
+            <div class="custom-select-trigger" style="flex:1; text-align:center; justify-content:center; padding:12px;" id="editStartText" onclick="openTimePicker('editStartText')">13:30</div>
+            <div class="custom-select-trigger" style="flex:1; text-align:center; justify-content:center; padding:12px;" id="editEndText" onclick="openTimePicker('editEndText')">14:10</div>
+        </div>
+        <textarea id="editHomework" class="prompt-box" style="background:#2C2C2E; color:white; height:60px; width:100%; box-sizing:border-box;" placeholder="Задание..."></textarea>
+        
+        <div style="margin-bottom: 10px;">
+            <button class="pin-btn" onclick="triggerImageUpload('edit')" style="background:rgba(255,255,255,0.1); color:white; padding: 10px; font-size: 14px; margin-top:0;">📷 Прикрепить фото</button>
+            <img id="editImgPreview" src="" style="width:100%; max-height:150px; object-fit:cover; border-radius:10px; margin-top:10px; display:none;">
+            <button id="removeImgBtn" class="pin-btn" onclick="removePendingImage()" style="background:rgba(255,69,58,0.2); color:var(--danger); display:none; margin-top:5px; font-size: 12px; padding: 8px;">Удалить фото</button>
+        </div>
+
+        <div style="display:flex; gap:10px;">
+            <button class="pin-btn" onclick="saveLesson()" style="background:var(--success); color:black;">Сохранить</button>
+            <button class="pin-btn" onclick="deleteLesson()" style="background:var(--danger); color:white;">Удалить</button>
+        </div>
+        <button class="pin-btn" onclick="closeModal()" style="background:transparent; color:#888; margin-top:10px; padding:10px;">Отмена</button>
+    </div>
+</div>
+
+<div class="modal-overlay" id="aiModal">
+    <div class="modal-card">
+        <h3 style="margin-top:0;">ИИ Ассистент</h3>
+        <textarea id="promptOutput" class="prompt-box" style="height:100px; font-size:11px;" readonly></textarea>
+        <button class="pin-btn" onclick="copyPrompt()" style="background:rgba(255,255,255,0.1); color:white; margin-bottom:15px; padding:10px;">📋 Скопировать</button>
+        <textarea id="jsonInput" class="prompt-box" style="height:100px; background:#2C2C2E; color:white;" placeholder="Вставьте ответ от ИИ сюда..."></textarea>
+        <div style="display:flex; gap:10px;">
+            <button class="pin-btn" onclick="applyAiResult()" style="background:var(--primary); color:black;">Применить</button>
+            <button class="pin-btn" onclick="closeModal()" style="background:transparent; color:#888;">Отмена</button>
+        </div>
+    </div>
+</div>
 <div class="sheet-overlay" id="sheetOverlay" onclick="closeSheet()"></div>
 <div class="sheet-container" id="sheetContainer">
     <div id="sheetTitle" style="text-align:center; padding-bottom:15px; color:#666; font-size:12px; font-weight:bold;">Выбери опцию</div>
@@ -470,9 +508,13 @@
     window.closeTimePicker = function() { document.getElementById('timeSheetOverlay').classList.remove('open'); document.getElementById('timeSheetContainer').classList.remove('open'); }
 
     // ЛОГИКА
-    window.pushToCloud = function() { set(dbRef, { schedule: window.schedule, settings: window.settings, notes: window.notes, admins: window.admins, users: window.users, globalNews: window.globalNews }); }
+    // ИСПРАВЛЕНИЕ: pushToCloud теперь возвращает Promise
+    window.pushToCloud = function() { return set(dbRef, { schedule: window.schedule, settings: window.settings, notes: window.notes, admins: window.admins, users: window.users, globalNews: window.globalNews }); }
     window.autoSaveNotes = function() { window.notes = document.getElementById('notesInput').value; document.getElementById('notesStatus').innerText = "Сохранение..."; clearTimeout(saveTimeout); saveTimeout = setTimeout(() => { window.pushToCloud(); document.getElementById('notesStatus').innerText = "Сохранено ✔"; setTimeout(() => { document.getElementById('notesStatus').innerText = ""; }, 2000); }, 1000); }
-    window.resetToFactory = function() { window.showConfirm("Сброс", "Сбросить всё к заводским?", () => { window.schedule = JSON.parse(JSON.stringify(defaultSchedule)); window.settings = { theme: '#FFD60A', showEmoji: true, animations: true }; window.notes = ""; window.pushToCloud(); location.reload(); }); }
+    
+    // ИСПРАВЛЕНИЕ СБРОСА: дожидаемся ответа от базы перед обновлением страницы
+    window.resetToFactory = function() { window.showConfirm("Сброс", "Сбросить всё к заводским?", () => { window.schedule = JSON.parse(JSON.stringify(defaultSchedule)); window.settings = { theme: '#FFD60A', showEmoji: true, animations: true }; window.notes = ""; window.pushToCloud().then(() => { location.reload(); }); }); }
+    
     window.setTheme = function(color, el) { window.settings.theme = color; applyTheme(color); window.pushToCloud(); document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active')); if(el) el.classList.add('active'); }
     function applyTheme(color) { const root = document.documentElement; root.style.setProperty('--primary', color); root.style.setProperty('--primary-dim', color + '26'); }
     window.toggleEmojis = function(val) { window.settings.showEmoji = val; window.pushToCloud(); window.renderScheduleList(); window.updateTimer(); }
@@ -669,7 +711,10 @@
     window.applyAiResult = function() { try { const r = JSON.parse(document.getElementById('jsonInput').value.trim().replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/, '').trim()); if(r.new_schedule || r["1"]) { window.schedule = r.new_schedule || r; window.pushToCloud(); window.closeModal(); window.showAlert("Успешно", "Расписание обновлено!"); } } catch(e) { window.showAlert("Ошибка", "Ошибка чтения JSON!"); } }
     window.findNextLessonDate = function() { const subject = window.currentSubject; const label = document.getElementById('hwTargetLabel'); const todayDay = new Date().getDay(); const daysName = ['Вс','Понедельник','Вторник','Среда','Четверг','Пятница','Сб']; window.quickHWTarget = null; if(!subject) { label.innerText = "Сначала выбери предмет"; label.style.color = "var(--primary)"; return; } let foundDay = -1; let foundIdx = -1; for(let offset=1; offset<=7; offset++) { let checkDay = (todayDay + offset); while(checkDay > 7) checkDay -= 7; if(checkDay > 5) continue; if(window.schedule[checkDay]) { const idx = window.schedule[checkDay].findIndex(l => l.n === subject); if(idx !== -1) { foundDay = checkDay; foundIdx = idx; break; } } } if(foundDay !== -1) { window.quickHWTarget = { day: foundDay, idx: foundIdx }; label.innerHTML = `Следующий урок: <span style="color:white;">${daysName[foundDay]}</span>`; label.style.color = "var(--text-sec)"; } else { label.innerText = "Урок не найден в расписании!"; label.style.color = "var(--danger)"; } }
     window.saveQuickHW = function() { const text = document.getElementById('hwTextQuick').value; const target = window.quickHWTarget; if(!target) { window.showAlert("Ошибка", "Сначала выбери предмет!"); return; } if(!text && !window.pendingImage) { window.showAlert("Ошибка", "Напиши задание или добавь фото!"); return; } window.schedule[target.day][target.idx].h = text; if(window.pendingImage) window.schedule[target.day][target.idx].img = window.pendingImage; window.pushToCloud(); window.showAlert("Успешно", "ДЗ сохранено!"); document.getElementById('hwTextQuick').value = ''; window.pendingImage = null; document.getElementById('quickImgStatus').innerText = ""; window.renderScheduleList();  }
-    window.saveManualHW = function() { const day = window.selectedManualDay; const idx = parseInt(document.getElementById('manualLessonIdx').value) - 1; const text = document.getElementById('hwTextManual').value; if(!window.schedule[day] || !window.schedule[day][idx]) { window.showAlert("Ошибка", "Такого урока нет!"); return; } if(!text && !window.pendingImage) { window.showAlert("Ошибка", "Напиши задание или добавь фото!"); return; } window.schedule[day][idx].h = text; if(window.pendingImage) window.schedule[day][idx].img = window.pendingImage; window.pushToCloud(); window.showAlert("Успешно", "ДЗ добавлено!"); document.getElementById('hwTextManual').value = ''; window.pendingImage = null; document.getElementById('manualImgStatus').innerText = ""; window.renderScheduleList(); }
+    
+    // ИСПРАВЛЕНИЕ: добавлена защита от пустого ввода номера урока в ручном режиме
+    window.saveManualHW = function() { const day = window.selectedManualDay; const rawIdx = parseInt(document.getElementById('manualLessonIdx').value); if(isNaN(rawIdx)) { window.showAlert("Ошибка", "Укажите корректный номер урока!"); return; } const idx = rawIdx - 1; const text = document.getElementById('hwTextManual').value; if(!window.schedule[day] || !window.schedule[day][idx]) { window.showAlert("Ошибка", "Такого урока нет!"); return; } if(!text && !window.pendingImage) { window.showAlert("Ошибка", "Напиши задание или добавь фото!"); return; } window.schedule[day][idx].h = text; if(window.pendingImage) window.schedule[day][idx].img = window.pendingImage; window.pushToCloud(); window.showAlert("Успешно", "ДЗ добавлено!"); document.getElementById('hwTextManual').value = ''; window.pendingImage = null; document.getElementById('manualImgStatus').innerText = ""; window.renderScheduleList(); }
+    
     window.toggleModAction = function() { const action = document.getElementById('modAction').value; document.getElementById('modShortenParams').style.display = action === 'shorten' ? 'block' : 'none'; document.getElementById('modHolidayParams').style.display = action === 'holiday' ? 'block' : 'none'; }
     window.applyDayModification = function() { const day = parseInt(document.getElementById('modDay').value); const action = document.getElementById('modAction').value; if(!window.schedule[day] || window.schedule[day].length === 0) { window.showAlert("Ошибка", "В этот день и так нет уроков."); return; } if(action === 'shorten') { const count = parseInt(document.getElementById('modLessonCount').value); if(isNaN(count) || count < 1) { window.showAlert("Ошибка", "Введите корректное число уроков!"); return; } if(count >= window.schedule[day].length) { window.showAlert("Внимание", "Количество уроков больше или равно текущему."); return; } window.showConfirm("Внимание", `Оставить только первые ${count} уроков? Остальные будут удалены!`, () => { window.schedule[day] = window.schedule[day].slice(0, count); window.pushToCloud(); window.renderScheduleList(); window.initAdmin(); window.updateTimer(); window.showAlert("Готово", "День успешно сокращен!"); }); } else if (action === 'holiday') { const hName = document.getElementById('modHolidayName').value.trim() || "Праздник"; window.showConfirm("Внимание", `Сделать день выходным (${hName})? Все уроки будут удалены!`, () => { window.schedule[day] = []; window.pushToCloud(); window.renderScheduleList(); window.initAdmin(); window.updateTimer(); window.showAlert("Готово", `Установлен выходной: ${hName}!`); }); } }
 
@@ -693,7 +738,7 @@
         if (!window.users[myCurrentId]) {
             // Первый вход юзера
             window.users[myCurrentId] = { 
-                hasAgreed: false, // Флаг, что он еще не нажал "Согласиться"
+                hasAgreed: false,
                 isBanned: false, 
                 banReason: '', 
                 visits: 0, 
@@ -747,9 +792,10 @@
                 }
             }
 
+            // ИСПРАВЛЕНИЕ: Убрал насильное открытие вкладок, чтобы не ломать UX, теперь все нормально загружается.
             if (isAdmin) {
                 document.getElementById('btnSet').style.display = 'block'; 
-                if (!initialLoadComplete) { switchTab('view-settings', document.getElementById('btnSet')); initialLoadComplete = true; }
+                if (!initialLoadComplete) { initialLoadComplete = true; } // Оставил мягкий первый проход
                 window.initAdmin();
             } else {
                 document.getElementById('btnSet').style.display = 'none'; 
