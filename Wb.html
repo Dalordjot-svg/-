@@ -1,1 +1,321 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>WB Доставка: Вручение</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+        /* Фирменный градиент WB */
+        .wb-gradient {
+            background: linear-gradient(135deg, #cb11ab 0%, #481173 100%);
+        }
+        
+        /* Плавное переключение экранов */
+        .screen-fade {
+            opacity: 0;
+            transform: translateY(15px);
+            transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .screen-fade.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
 
+        /* Ультра-плавная анимация зеленой волны успеха */
+        @keyframes wave-up {
+            0% { transform: translateY(100%); }
+            100% { transform: translateY(0); }
+        }
+        @keyframes fade-in-pop {
+            0% { transform: scale(0.9) translateY(10px); opacity: 0; }
+            100% { transform: scale(1) translateY(0); opacity: 1; }
+        }
+        
+        .animate-wave {
+            animation: wave-up 0.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+        }
+        .animate-pop {
+            animation: fade-in-pop 0.5s 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-900 font-sans min-h-screen flex items-center justify-center p-0 md:p-6 select-none">
+
+    <div class="w-full md:max-w-2xl h-screen md:h-auto md:min-h-[650px] bg-white md:rounded-3xl shadow-2xl border border-slate-100 overflow-hidden relative flex flex-col justify-between transition-all duration-300">
+        
+        <header class="wb-gradient p-5 md:p-6 text-white flex items-center justify-between shadow-md shrink-0">
+            <div class="flex items-center space-x-3">
+                <span class="font-black text-xl md:text-2xl tracking-tight">WILDBERRIES</span>
+                <span class="text-[10px] bg-white/20 px-2.5 py-0.5 rounded-full font-mono tracking-wider font-bold">КУРЬЕР</span>
+            </div>
+            <div class="text-xs md:text-sm font-mono opacity-85" id="currentTime">12:00</div>
+        </header>
+
+        <div class="flex-1 p-6 md:p-10 flex flex-col justify-center items-center relative overflow-hidden bg-slate-50/50">
+
+            <div id="screenStart" class="w-full max-w-md text-center space-y-6 md:space-y-8 screen-fade active">
+                <div class="w-24 h-24 md:w-28 md:h-28 bg-pink-50 rounded-full flex items-center justify-center mx-auto text-4xl md:text-5xl shadow-inner animate-pulse">📦</div>
+                <div class="space-y-2">
+                    <h2 class="text-2xl md:text-3xl font-black text-slate-800 tracking-tight">Заказ готов к выдаче</h2>
+                    <p class="text-sm text-slate-400 max-w-xs mx-auto">Передайте планшет клиенту для электронного подтверждения</p>
+                </div>
+                <button id="btnStart" class="w-full wb-gradient hover:opacity-95 text-white font-extrabold py-4.5 px-6 rounded-2xl text-base md:text-stretch shadow-lg shadow-pink-500/20 transition-all active:scale-[0.99] cursor-pointer">
+                    Вручить заказ
+                </button>
+            </div>
+
+            <div id="screenSign" class="w-full max-w-lg hidden space-y-5 screen-fade">
+                <div class="text-center space-y-1">
+                    <h3 class="text-xl md:text-2xl font-black text-slate-800 tracking-tight">Подпись получателя</h3>
+                    <p class="text-xs md:text-sm text-slate-400">Пожалуйста, распишитесь внутри рамки пальцем или стилусом</p>
+                </div>
+                
+                <div class="relative bg-white border-2 border-dashed border-slate-200 rounded-2xl overflow-hidden h-56 md:h-64 shadow-inner w-full">
+                    <canvas id="signaturePad" class="w-full h-full touch-none cursor-crosshair"></canvas>
+                    <button id="btnClearSign" class="absolute bottom-3 right-3 bg-slate-900/5 hover:bg-slate-900/10 text-slate-700 text-xs py-2 px-4 rounded-xl font-bold transition shadow-sm cursor-pointer">
+                        Очистить
+                    </button>
+                </div>
+
+                <button id="btnSaveSign" class="w-full wb-gradient text-white font-bold py-4 px-4 rounded-xl text-sm md:text-base transition-all active:scale-[0.99] shadow-md cursor-pointer">
+                    Подтвердить подпись
+                </button>
+            </div>
+
+            <div id="screenRate" class="w-full max-w-md hidden space-y-6 screen-fade">
+                <div class="text-center space-y-1">
+                    <h3 class="text-xl md:text-2xl font-black text-slate-800 tracking-tight">Оцените работу курьера</h3>
+                    <p class="text-xs md:text-sm text-slate-400">Ваша оценка важна для контроля качества доставки</p>
+                </div>
+
+                <div class="flex justify-center space-x-3 text-4xl md:text-5xl my-2">
+                    <button class="star-btn text-slate-200 transition-all duration-200 transform hover:scale-110 cursor-pointer" data-value="1">★</button>
+                    <button class="star-btn text-slate-200 transition-all duration-200 transform hover:scale-110 cursor-pointer" data-value="2">★</button>
+                    <button class="star-btn text-slate-200 transition-all duration-200 transform hover:scale-110 cursor-pointer" data-value="3">★</button>
+                    <button class="star-btn text-slate-200 transition-all duration-200 transform hover:scale-110 cursor-pointer" data-value="4">★</button>
+                    <button class="star-btn text-slate-200 transition-all duration-200 transform hover:scale-110 cursor-pointer" data-value="5">★</button>
+                </div>
+
+                <div id="tagsContainer" class="opacity-0 transition-opacity duration-300 space-y-3 hidden">
+                    <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider text-center" id="tagsTitle">Что понравилось?</p>
+                    <div id="tagsList" class="flex flex-wrap justify-center gap-2 max-h-40 overflow-y-auto px-1">
+                        </div>
+                </div>
+
+                <button id="btnFinish" class="w-full bg-slate-200 text-slate-400 font-bold py-4 px-4 rounded-xl text-sm md:text-base cursor-not-allowed transition-all" disabled>
+                    Готово
+                </button>
+            </div>
+
+        </div>
+
+        <footer class="p-4 text-center border-t border-slate-100 text-[10px] text-slate-300 font-bold tracking-widest shrink-0 bg-white">
+            ЭЛЕКТРОННАЯ СИСТЕМА ВРУЧЕНИЯ ВБ
+        </footer>
+
+        <div id="screenSuccess" class="absolute inset-0 z-50 hidden flex flex-col justify-between overflow-hidden p-6 md:p-10 text-white">
+            <div class="animate-wave absolute inset-0 bg-emerald-500 rounded-t-none md:rounded-t-[24px]"></div>
+            
+            <div class="relative z-10 text-center space-y-4 mt-8 md:mt-12">
+                <div class="animate-pop opacity-0 w-24 h-24 bg-white rounded-full flex items-center justify-center mx-auto shadow-2xl">
+                    <svg class="w-12 h-12 text-emerald-500" fill="none" stroke="currentColor" stroke-width="4" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                </div>
+                <div class="animate-pop opacity-0 space-y-1">
+                    <h2 class="text-2xl md:text-3xl font-black tracking-tight">Заказ вручен!</h2>
+                    <p class="text-xs md:text-sm text-emerald-100 opacity-85">Благодарим вас за обратную связь</p>
+                </div>
+            </div>
+
+            <div class="animate-pop opacity-0 relative z-10 bg-white/15 border border-white/20 backdrop-blur-md rounded-2xl p-5 md:p-6 mb-4 max-w-xl mx-auto w-full space-y-3 shadow-xl">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-black bg-white text-emerald-600 px-3 py-1 rounded-full uppercase tracking-wider shadow-sm">ВБ Клуб</span>
+                    <span class="text-xs text-yellow-300 font-bold flex items-center gap-1">⭐ Персональное предложение</span>
+                </div>
+                <p class="text-sm md:text-base text-white leading-relaxed font-medium">
+                    А вы уже пользуетесь подпиской <span class="font-bold underline">ВБ клуб</span>? Каждую неделю даем <span class="font-bold text-yellow-300">2 бесплатные доставки</span> и много других персональных скидок! 
+                </p>
+                <div class="text-[11px] md:text-xs text-emerald-100/90 border-t border-white/10 pt-3 text-center">
+                    Подробности можно уточнить у курьера или самому на сайте ВБ
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Обновление часов
+        const updateClock = () => {
+            const now = new Date();
+            document.getElementById('currentTime').innerText = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        };
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // Экраны
+        const sStart = document.getElementById('screenStart');
+        const sSign = document.getElementById('screenSign');
+        const sRate = document.getElementById('screenRate');
+        const sSuccess = document.getElementById('screenSuccess');
+
+        // Переходы между окнами
+        function switchScreen(hideScreen, showScreen, callback) {
+            hideScreen.classList.remove('active');
+            setTimeout(() => {
+                hideScreen.classList.add('hidden');
+                showScreen.classList.remove('hidden');
+                setTimeout(() => {
+                    showScreen.classList.add('active');
+                    if(callback) callback();
+                }, 50);
+            }, 400);
+        }
+
+        document.getElementById('btnStart').addEventListener('click', () => {
+            switchScreen(sStart, sSign, () => {
+                resizeCanvas();
+            });
+        });
+
+        // --- CANVAS ПОДПИСЬ (С фиксацией размеров для планшетов) ---
+        const canvas = document.getElementById('signaturePad');
+        const ctx = canvas.getContext('2d');
+        let isDrawing = false;
+
+        function resizeCanvas() {
+            // Четко считываем размеры контейнера, куда помещен canvas
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+            
+            // Настройки кисти
+            ctx.strokeStyle = '#481173'; 
+            ctx.lineWidth = 4; // Чуть толще линия для больших экранов
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+        }
+
+        // Пересчитываем canvas при изменении ориентации планшета
+        window.addEventListener('resize', () => {
+            if (!sSign.classList.contains('hidden')) resizeCanvas();
+        });
+
+        const getPos = (e) => {
+            const rect = canvas.getBoundingClientRect();
+            // Поддержка мультитача и обычного клика
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return { x: clientX - rect.left, y: clientY - rect.top };
+        };
+
+        const startDraw = (e) => { isDrawing = true; draw(e); };
+        const endDraw = () => { isDrawing = false; ctx.beginPath(); };
+        const draw = (e) => {
+            if (!isDrawing) return;
+            e.preventDefault(); // Предотвращаем скролл страницы планшета при подписи
+            const pos = getPos(e);
+            ctx.lineTo(pos.x, pos.y);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(pos.x, pos.y);
+        };
+
+        canvas.addEventListener('mousedown', startDraw);
+        canvas.addEventListener('mouseup', endDraw);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('touchstart', startDraw);
+        canvas.addEventListener('touchend', endDraw);
+        canvas.addEventListener('touchmove', draw);
+
+        document.getElementById('btnClearSign').addEventListener('click', () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        });
+
+        document.getElementById('btnSaveSign').addEventListener('click', () => {
+            switchScreen(sSign, sRate);
+        });
+
+
+        // --- СИСТЕМА ДИНАМИЧЕСКИХ ТЕГОВ И ЗВЕЗД ---
+        const stars = document.querySelectorAll('.star-btn');
+        const tagsContainer = document.getElementById('tagsContainer');
+        const tagsTitle = document.getElementById('tagsTitle');
+        const tagsList = document.getElementById('tagsList');
+        const btnFinish = document.getElementById('btnFinish');
+        
+        let selectedRating = 0;
+        const positiveTags = ["Быстрая доставка", "Вежливый курьер", "Отличный сервис", "Заказ в целости", "Чистая форма", "WB маска"];
+        const negativeTags = ["Долгая доставка", "Грубый курьер", "Помятая упаковка", "Курьер опоздал", "Сложно связаться"];
+
+        stars.forEach(star => {
+            star.addEventListener('click', (e) => {
+                selectedRating = parseInt(e.target.getAttribute('data-value'));
+                
+                stars.forEach(s => {
+                    const val = parseInt(s.getAttribute('data-value'));
+                    if(val <= selectedRating) {
+                        s.className = "star-btn text-amber-400 scale-105 transition-all duration-200 cursor-pointer";
+                    } else {
+                        s.className = "star-btn text-slate-200 scale-100 transition-all duration-200 cursor-pointer";
+                    }
+                });
+
+                btnFinish.disabled = false;
+                btnFinish.className = "w-full wb-gradient text-white font-bold py-4 px-4 rounded-xl text-sm md:text-base transition-all shadow-lg shadow-pink-500/10 active:scale-[0.99] cursor-pointer";
+
+                tagsContainer.classList.remove('hidden');
+                setTimeout(() => tagsContainer.classList.add('opacity-100'), 50);
+                tagsList.innerHTML = "";
+
+                if(selectedRating >= 4) {
+                    tagsTitle.innerText = "Что понравилось?";
+                    renderTags(positiveTags);
+                } else {
+                    tagsTitle.innerText = "Что пошло не так?";
+                    renderTags(negativeTags);
+                }
+            });
+        });
+
+        function renderTags(tagsArray) {
+            tagsArray.forEach(text => {
+                const btn = document.createElement('button');
+                btn.className = "bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs md:text-sm py-2 px-4 rounded-full border border-slate-200 transition-all duration-200 font-medium active:scale-95 cursor-pointer";
+                btn.type = "button";
+                btn.innerText = text;
+                
+                btn.addEventListener('click', () => {
+                    btn.classList.toggle('bg-slate-100');
+                    btn.classList.toggle('wb-gradient');
+                    btn.classList.toggle('text-slate-700');
+                    btn.classList.toggle('text-white');
+                    btn.classList.toggle('border-slate-200');
+                    btn.classList.toggle('border-transparent');
+                });
+                tagsList.appendChild(btn);
+            });
+        }
+
+        // КЛИК "ГОТОВО" -> ЗАПУСК ОКОНЧАТЕЛЬНОЙ АНИМАЦИИ
+        btnFinish.addEventListener('click', () => {
+            sSuccess.classList.remove('hidden');
+            
+            // Авто-возврат в исходную точку через 8 секунд для обработки следующего клиента
+            setTimeout(() => {
+                sSuccess.classList.add('hidden');
+                sRate.classList.add('hidden');
+                sStart.classList.remove('hidden');
+                sStart.classList.add('active');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                selectedRating = 0;
+                stars.forEach(s => s.className = "star-btn text-slate-200 transition-all duration-200 cursor-pointer");
+                tagsContainer.classList.add('hidden');
+                tagsContainer.classList.remove('opacity-100');
+                btnFinish.disabled = true;
+                btnFinish.className = "w-full bg-slate-200 text-slate-400 font-bold py-4 px-4 rounded-xl text-sm cursor-not-allowed transition-all";
+            }, 8000);
+        });
+    </script>
+</body>
+</html>
